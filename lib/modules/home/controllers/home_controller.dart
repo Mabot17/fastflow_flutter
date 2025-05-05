@@ -10,11 +10,16 @@ class HomeController extends GetxController {
 
   var username = ''.obs;
   var menuData = [].obs;
+  var currentIndex = 0.obs;
 
   @override
   void onInit() {
     super.onInit();
     loadUserData();
+  }
+
+  void changePage(int index) {
+    currentIndex.value = index;
   }
 
   void loadUserData() {

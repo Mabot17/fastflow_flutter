@@ -1,142 +1,93 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/home_controller.dart';
-import '../models/home_model.dart';
-import '../../../../widgets/custom_app_bar.dart';
+import '../views/home_app_bar.dart';
+import '../views/home_drawer.dart';
+import '../views/home_menu_grid.dart';
+import '../views/receipt_view.dart';
+import '../views/notification_view.dart';
+import '../views/profile_view.dart';
 
 class HomeView extends StatelessWidget {
   final HomeController controller = Get.find<HomeController>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  void _confirmLogout(BuildContext context) {
-    Get.defaultDialog(
-      title: "Konfirmasi",
-      middleText: "Apakah Anda yakin ingin logout?",
-      textCancel: "Tidak",
-      textConfirm: "Ya",
-      confirmTextColor: Colors.white,
-      onConfirm: controller.logout,
+  HomeView({super.key});
+
+  Widget _buildBottomNavBar() {
+    return BottomAppBar(
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 8.0,
+      color: Colors.white, // Set warna putih pada BottomAppBar
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildNavItem(icon: Icons.home, index: 0),
+          _buildNavItem(icon: Icons.receipt, index: 1),
+          const SizedBox(width: 40), // Space for FAB
+          _buildNavItem(icon: Icons.notifications, index: 2),
+          _buildNavItem(icon: Icons.person, index: 3),
+        ],
+      ),
     );
+  }
+
+  Widget _buildNavItem({required IconData icon, required int index}) {
+    return Obx(() => IconButton(
+          icon: Icon(
+            icon,
+            color: controller.currentIndex.value == index ? Colors.blue : Colors.grey, // Biru saat aktif
+          ),
+          onPressed: () => controller.changePage(index),
+        ));
+  }
+
+  Widget _buildBody() {
+    return Obx(() {
+      switch (controller.currentIndex.value) {
+        case 0:
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: HomeMenuGrid(controller: controller),
+          );
+        case 1:
+          return const ReceiptView();
+        case 2:
+          return const NotificationView();
+        case 3:
+          return const ProfileView();
+        default:
+          return const Center(child: Text('Halaman tidak ditemukan'));
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(context),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Obx(() => _buildMenuGrid(controller.menuData)),
-          ],
+      key: _scaffoldKey,
+      drawer: const HomeDrawer(),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: HomeAppBar(
+          username: controller.username.value,
+          onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
         ),
       ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return CustomAppBar(
-      elevation: 4,
-      title: Obx(() => Row(
-        children: [
-          Icon(Icons.person, size: 24, color: Colors.white),
-          SizedBox(width: 8),
-          Text(controller.username.value,
-              style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.w500)),
-        ],
-      )),
-      actions: [
-        Padding(
-          padding: EdgeInsets.only(right: 12),
-          child: GestureDetector(
-            onTap: () => _confirmLogout(context),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red, width: 2),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.logout, color: Colors.red),
-                  SizedBox(width: 4),
-                  Text("Logout", style: TextStyle(color: Colors.red, fontWeight: FontWeight.w500)),
-                ],
-              ),
-            ),
-          ),
+      body: _buildBody(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => controller.handleMenuTap({'route': '/scan_produk'}),
+        child: const Icon(
+          Icons.qr_code_2_rounded,
+          color: Colors.blue, // Ikon biru
         ),
-      ],
-    );
-  }
-
-
-  Widget _buildMenuGrid(List menuData) {
-    return Expanded(
-      child: ListView.builder(
-        itemCount: menuData.length,
-        itemBuilder: (context, sectionIndex) {
-          var section = menuData[sectionIndex];
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                section['title'],
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
-              ),
-              SizedBox(height: 12),
-              _buildGrid(section['items']),
-              SizedBox(height: 16),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildGrid(List items) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 1.0,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        var item = items[index];
-        return _buildMenuItem(item);
-      },
-    );
-  }
-
-  Widget _buildMenuItem(Map<String, dynamic> item) {
-    return GestureDetector(
-      onTap: () => controller.handleMenuTap(item),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.blue.shade100,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
-              blurRadius: 8,
-              spreadRadius: 4,
-            )
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(HomeModel.getIconData(item['icon']), size: 40, color: Colors.blue),
-            SizedBox(height: 8),
-            Text(item['title'], textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w500)),
-          ],
+        backgroundColor: Colors.white, // Set warna latar belakang FAB menjadi putih
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30), // Menambahkan rounded corner
         ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 }

@@ -4,8 +4,7 @@ const String menuJson = '''
     {
       "title": "Master",
       "items": [
-        { "title": "Produk", "icon": "shopping_bag", "route": "/products" },
-        { "title": "Produk Global", "icon": "shopping_bag", "route": "/products_global" },
+        { "title": "Produk", "icon": "shopping_bag", "route": "/products_global" },
         { "title": "Scan Produk", "icon": "shopping_bag", "route": "/scan_produk" },
         { "title": "Satuan", "icon": "straighten", "route": "/units" },
         { "title": "Kategori", "icon": "category", "route": "/categories" },
