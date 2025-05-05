@@ -1,32 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
-import 'routes/app_routes.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart'; // tambahkan ini
+
+import 'app.dart';
+import 'routes/app_routes_constant.dart';
 import 'modules/auth/login/controllers/auth_login_controller.dart';
+import 'core/services/storage_service.dart'; // Storage service
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await GetStorage.init(); // Inisialisasi GetStorage sebelum aplikasi dimulai
+  await StorageService.init();
 
-  // Hindari duplikasi registrasi AuthController
-  if (!Get.isRegistered<AuthController>()) {
-    Get.put(AuthController());
-  }
+  // Inisialisasi global controller
+  Get.put(AuthController());
 
-  runApp(const MyApp()); // Gunakan const jika tidak ada perubahan internal
+  // Menunggu hingga token dibaca dari storage
+  final storageService = StorageService();
+  final String? token = await storageService.read<String>('access_token');
+  final bool isValidToken = token != null;
+
+  runApp(
+    ScreenUtilInit(
+      designSize: const Size(375, 812),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) => child!,
+      child: MyApp(
+        initialRoute: isValidToken
+            ? AppRoutesConstants.home
+            : AppRoutesConstants.login,
+      ),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key}); // Tambahkan super.key untuk optimalisasi
-
-  @override
-  Widget build(BuildContext context) {
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'FastFlow App',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      initialRoute: '/splash', // Sesuaikan dengan pendekatan baru
-      getPages: AppRoutes.routes, // Menggunakan pendekatan modular
-    );
-  }
-}

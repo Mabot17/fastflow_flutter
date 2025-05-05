@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../controllers/home_controller.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String username;
   final VoidCallback onOpenDrawer;
 
   const HomeAppBar({
     super.key,
-    required this.username,
     required this.onOpenDrawer,
   });
 
@@ -29,6 +28,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final HomeController controller = Get.find<HomeController>();
     return AppBar(
       elevation: 6,
       backgroundColor: const Color(0xFF1A237E),
@@ -48,16 +48,18 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              "Hai, $username",
-              style: const TextStyle(
-                fontSize: 18,
-                color: Colors.white,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.3,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
+            child: Obx(() {
+              return Text(
+                "Hai, ${controller.username}",
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.3,
+                ),
+                overflow: TextOverflow.ellipsis,
+              );
+            }),
           ),
         ],
       ),

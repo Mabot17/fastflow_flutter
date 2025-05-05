@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import '../modules/auth/splash/auth_splash_module.dart';
 import '../modules/auth/login/auth_login_module.dart';
 import '../modules/home/home_module.dart';
 
@@ -15,7 +14,6 @@ import '../modules/global/maintenance_view.dart';
 class AppRoutes {
   static final routes = [
     // Pemanggilan Global langsung routes full
-    ...AuthSplashModule.routes,
     ...AuthLoginModule.routes,
     ...HomeModule.routes,
     ...MasterProdukModule.routes,

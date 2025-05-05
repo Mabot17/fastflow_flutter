@@ -46,8 +46,13 @@ class _MasterProdukGlobalViewState extends State<MasterProdukGlobalView> {
               controller: _searchController,
               decoration: InputDecoration(
                 labelText: "Cari Produk",
-                prefixIcon: Icon(Icons.search),
+                labelStyle: TextStyle(color: Color(0xFF7C4DFF)),
+                prefixIcon: Icon(Icons.search, color: Color(0xFF7C4DFF)),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF7C4DFF)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               onChanged: _onSearchChanged,
             ),
@@ -98,6 +103,7 @@ class ProductListItem extends StatelessWidget {
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      elevation: 5,
       child: ListTile(
         onTap: () => _controller.goToDetailProduct(product["productId"]),
         leading: ClipRRect(
@@ -112,7 +118,7 @@ class ProductListItem extends StatelessWidget {
         ),
         title: Text(
           product["productName"] ?? "Nama Tidak Tersedia",
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF7C4DFF)),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,7 +133,7 @@ class ProductListItem extends StatelessWidget {
             ),
           ],
         ),
-        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Color(0xFF7C4DFF)),
       ),
     );
   }

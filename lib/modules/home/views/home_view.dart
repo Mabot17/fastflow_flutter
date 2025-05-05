@@ -73,7 +73,6 @@ class HomeView extends StatelessWidget {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: HomeAppBar(
-          username: controller.username.value,
           onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
         ),
       ),

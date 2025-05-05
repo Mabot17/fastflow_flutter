@@ -22,14 +22,14 @@ class HomeController extends GetxController {
     currentIndex.value = index;
   }
 
-  void loadUserData() {
-    final userData = _storage.read('user_data') ?? {};
+  Future<void> loadUserData() async {
+    final userData = await _storage.read('user_data') ?? {};
     username.value = userData['user_name'] ?? 'Unknown';
     menuData.value = jsonDecode(menuJson)['sections'];
   }
 
   void logout() {
-    _storage.remove('user_data');
+    _storage.clear();
     Get.offAllNamed(AppRoutesConstants.login);
   }
 

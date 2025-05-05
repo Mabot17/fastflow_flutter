@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'routes/app_routes.dart';
-import 'routes/app_routes_constant.dart'; // Import konstanta
 
+// Untuk konfigurasi awal aplikasi
+// Menggunakan GetX untuk state management dan routing
 class MyApp extends StatelessWidget {
+  final String initialRoute;
+
+  const MyApp({super.key, required this.initialRoute});
+
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'FastFlow App',
+      title: 'Fastflow App',
       theme: ThemeData(primarySwatch: Colors.blue),
-      initialRoute: AppRoutesConstants.splash, // Sesuaikan dengan pendekatan baru
-      getPages: AppRoutes.routes, // Gunakan pendekatan modular baru
+      initialRoute: initialRoute,
+      getPages: AppRoutes.routes
     );
   }
 }
