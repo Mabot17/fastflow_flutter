@@ -11,16 +11,19 @@ class NotificationView extends StatelessWidget {
         body: Column(
           children: [
             const TabBar(
+              labelColor: Color(0xFF7C4DFF),
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: Color(0xFF7C4DFF),
               tabs: [
                 Tab(text: "Semua Notifikasi"),
                 Tab(text: "Belum Dibaca"),
               ],
             ),
-            Expanded(
-              child: const TabBarView(
+            const Expanded(
+              child: TabBarView(
                 children: [
-                  NotificationTabView(isRead: true), // Menampilkan semua notifikasi
-                  NotificationTabView(isRead: false), // Menampilkan notifikasi yang belum dibaca
+                  NotificationTabView(isRead: true),
+                  NotificationTabView(isRead: false),
                 ],
               ),
             ),
@@ -32,8 +35,8 @@ class NotificationView extends StatelessWidget {
 }
 
 class NotificationTabView extends StatelessWidget {
-  final bool isRead; // Menandakan apakah ini tab "Belum Dibaca" atau "Semua Notifikasi"
-  
+  final bool isRead;
+
   const NotificationTabView({super.key, required this.isRead});
 
   @override
@@ -45,7 +48,6 @@ class NotificationTabView extends StatelessWidget {
       NotificationItem(title: 'Promo Hari Ini', description: 'Jangan lewatkan promo khusus hari ini!', date: '2025-05-04 08:00', isRead: false),
     ];
 
-    // Filter berdasarkan status read/unread
     List<NotificationItem> filteredNotifications = notifications.where((item) => item.isRead == isRead).toList();
 
     return ListView.builder(
@@ -61,17 +63,17 @@ class NotificationTabView extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       elevation: 5,
-      color: notification.isRead ? Colors.white : Colors.blue[50], // Beri warna berbeda untuk notifikasi yang belum dibaca
+      color: notification.isRead ? Colors.white : const Color(0xFFF3EFFF), // Soft purple background
       child: ListTile(
         leading: Icon(
           notification.isRead ? Icons.notifications_none : Icons.notifications_active,
-          color: notification.isRead ? Colors.grey : Colors.blue,
+          color: notification.isRead ? Colors.grey : const Color(0xFF7C4DFF),
         ),
         title: Text(
           notification.title,
           style: TextStyle(
             fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
-            color: notification.isRead ? Colors.black : Colors.blue,
+            color: notification.isRead ? Colors.black : const Color(0xFF7C4DFF),
           ),
         ),
         subtitle: Text(
@@ -96,7 +98,7 @@ class NotificationTabView extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.red,
+                  color: Color(0xFF7C4DFF),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Text(
@@ -108,7 +110,7 @@ class NotificationTabView extends StatelessWidget {
           ],
         ),
         onTap: () {
-          // Tindakan saat notifikasi ditekan, seperti membuka detail
+          // Tindakan saat notifikasi ditekan
         },
       ),
     );

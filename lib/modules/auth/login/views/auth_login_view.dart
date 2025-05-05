@@ -19,7 +19,7 @@ class LoginView extends StatelessWidget {
               // Logo atau gambar header (opsional)
               const CircleAvatar(
                 radius: 50,
-                backgroundImage: NetworkImage('https://fastapi.tiangolo.com/img/favicon.png'), // Ganti dengan logo
+                backgroundImage: NetworkImage('https://fastflow.pybot.cloud/static/fastflow.png'), // Ganti dengan logo
               ),
               const SizedBox(height: 30),
               
@@ -28,9 +28,9 @@ class LoginView extends StatelessWidget {
                 controller: usernameController,
                 decoration: InputDecoration(
                   labelText: "Username",
-                  labelStyle: TextStyle(color: Colors.blue),
+                  labelStyle: const TextStyle(color: Color(0xFF7C4DFF)),
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person, color: Colors.blue),
+                  prefixIcon: const Icon(Icons.person, color: Color(0xFF7C4DFF)),
                 ),
               ),
               const SizedBox(height: 16),
@@ -40,9 +40,9 @@ class LoginView extends StatelessWidget {
                 controller: passwordController,
                 decoration: InputDecoration(
                   labelText: "Password",
-                  labelStyle: TextStyle(color: Colors.blue),
+                  labelStyle: const TextStyle(color: Color(0xFF7C4DFF)),
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock, color: Colors.blue),
+                  prefixIcon: const Icon(Icons.lock, color: Color(0xFF7C4DFF)),
                 ),
                 obscureText: true,
               ),
@@ -59,7 +59,7 @@ class LoginView extends StatelessWidget {
                 child: const Text("Login", style: TextStyle(fontSize: 16, color: Colors.white)),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: Colors.blue, // Warna tombol biru
+                  backgroundColor: const Color(0xFF7C4DFF), // Warna tombol ungu terang
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10), // Tombol melengkung
                   ),
@@ -73,7 +73,7 @@ class LoginView extends StatelessWidget {
                 },
                 child: const Text(
                   "Forgot Password?",
-                  style: TextStyle(color: Colors.blue),
+                  style: TextStyle(color: Color(0xFF7C4DFF)),
                 ),
               ),
             ],

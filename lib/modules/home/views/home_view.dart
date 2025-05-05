@@ -18,13 +18,13 @@ class HomeView extends StatelessWidget {
     return BottomAppBar(
       shape: const CircularNotchedRectangle(),
       notchMargin: 8.0,
-      color: Colors.white, // Set warna putih pada BottomAppBar
+      color: const Color(0xFFE8EAF6), // Soft Indigo background
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildNavItem(icon: Icons.home, index: 0),
           _buildNavItem(icon: Icons.receipt, index: 1),
-          const SizedBox(width: 40), // Space for FAB
+          const SizedBox(width: 40),
           _buildNavItem(icon: Icons.notifications, index: 2),
           _buildNavItem(icon: Icons.person, index: 3),
         ],
@@ -36,7 +36,10 @@ class HomeView extends StatelessWidget {
     return Obx(() => IconButton(
           icon: Icon(
             icon,
-            color: controller.currentIndex.value == index ? Colors.blue : Colors.grey, // Biru saat aktif
+            size: 28,
+            color: controller.currentIndex.value == index
+                ? const Color(0xFF1A237E) // Deep blue saat aktif
+                : Colors.grey.shade500,
           ),
           onPressed: () => controller.changePage(index),
         ));
@@ -77,13 +80,14 @@ class HomeView extends StatelessWidget {
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
         onPressed: () => controller.handleMenuTap({'route': '/scan_produk'}),
+        backgroundColor: const Color(0xFF1A237E),
         child: const Icon(
           Icons.qr_code_2_rounded,
-          color: Colors.blue, // Ikon biru
+          color: Colors.white,
+          size: 30,
         ),
-        backgroundColor: Colors.white, // Set warna latar belakang FAB menjadi putih
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30), // Menambahkan rounded corner
+          borderRadius: BorderRadius.circular(18),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

@@ -14,34 +14,48 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   void _showInfoDialog() {
     Get.defaultDialog(
       title: "Tentang Aplikasi",
-      middleText: "FastFlow\nVersi 0.0.2",
+      titleStyle: const TextStyle(
+        fontWeight: FontWeight.bold,
+        color: Color(0xFF1A237E),
+      ),
+      middleText: "FastFlow\nVersi 0.0.5",
+      middleTextStyle: const TextStyle(fontSize: 16),
       textConfirm: "Tutup",
       confirmTextColor: Colors.white,
-      onConfirm: Get.back, // <- Ini memastikan dialog tertutup
+      buttonColor: const Color(0xFF1A237E),
+      onConfirm: Get.back,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      elevation: 4,
-      backgroundColor: Theme.of(context).primaryColor,
+      elevation: 6,
+      backgroundColor: const Color(0xFF1A237E),
       leading: IconButton(
         icon: const Icon(Icons.menu, color: Colors.white),
         onPressed: onOpenDrawer,
       ),
       title: Row(
         children: [
-          const CircleAvatar(
-            radius: 16,
-            backgroundColor: Colors.white24,
-            child: Icon(Icons.person, color: Colors.white),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(6),
+            child: const Icon(Icons.person, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               "Hai, $username",
-              style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                fontSize: 18,
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.3,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),

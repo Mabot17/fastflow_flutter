@@ -11,16 +11,12 @@ class ReceiptView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Transaksi Header
             _buildReceiptHeader(),
             const SizedBox(height: 20),
-            // Rincian Produk
             _buildProductDetails(),
             const SizedBox(height: 20),
-            // Total Harga dan Status Pembayaran
             _buildTotalAndStatus(),
             const SizedBox(height: 20),
-            // Tombol Aksi
             _buildActionButton(context),
           ],
         ),
@@ -28,28 +24,31 @@ class ReceiptView extends StatelessWidget {
     );
   }
 
-  // Bagian Header Transaksi
   Widget _buildReceiptHeader() {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.teal.shade100,
+        color: const Color(0xFFF3EFFF), // Latar belakang ungu muda
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
+        children: const [
+          Text(
             'No. Transaksi: #123456789',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF7C4DFF),
+            ),
           ),
-          const SizedBox(height: 8),
-          const Text(
+          SizedBox(height: 8),
+          Text(
             'Tanggal: 2025-05-05',
             style: TextStyle(fontSize: 14, color: Colors.grey),
           ),
-          const SizedBox(height: 8),
-          const Text(
+          SizedBox(height: 8),
+          Text(
             'Status: Berhasil',
             style: TextStyle(fontSize: 14, color: Colors.green),
           ),
@@ -58,7 +57,6 @@ class ReceiptView extends StatelessWidget {
     );
   }
 
-  // Rincian Produk yang Dibeli
   Widget _buildProductDetails() {
     List<Map<String, String>> products = [
       {'name': 'Produk A', 'quantity': '2', 'price': 'Rp 50.000'},
@@ -69,6 +67,7 @@ class ReceiptView extends StatelessWidget {
     return Card(
       elevation: 5,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      color: const Color(0xFFF8F4FF),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -90,40 +89,43 @@ class ReceiptView extends StatelessWidget {
     );
   }
 
-  // Total Harga dan Status Pembayaran
   Widget _buildTotalAndStatus() {
-    double total = 50.000 * 2 + 100.000 * 1 + 30.000 * 3;
+    double total = 50000 * 2 + 100000 * 1 + 30000 * 3; // Fix angka titik jadi koma
 
     return Card(
       elevation: 5,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      color: const Color(0xFFF3EFFF),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Subtotal'),
-                Text('Rp 210.000', style: TextStyle(fontWeight: FontWeight.bold)),
+              children: const [
+                Text('Subtotal'),
+                Text('Rp 290.000', style: TextStyle(fontWeight: FontWeight.bold)),
               ],
             ),
             const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Diskon'),
+              children: const [
+                Text('Diskon'),
                 Text('Rp 10.000', style: TextStyle(fontWeight: FontWeight.bold)),
               ],
             ),
             const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Total'),
+              children: const [
+                Text('Total'),
                 Text(
-                  'Rp ${total - 10.000}',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                  'Rp 280.000',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF7C4DFF),
+                  ),
                 ),
               ],
             ),
@@ -133,12 +135,10 @@ class ReceiptView extends StatelessWidget {
     );
   }
 
-  // Tombol untuk Melakukan Aksi lebih lanjut (Misalnya kembali ke beranda atau cetak)
   Widget _buildActionButton(BuildContext context) {
     return Center(
       child: ElevatedButton.icon(
         onPressed: () {
-          // Tindakan pada tombol, seperti kembali ke beranda atau cetak
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Transaksi telah selesai')),
           );
@@ -146,7 +146,12 @@ class ReceiptView extends StatelessWidget {
         icon: const Icon(Icons.print),
         label: const Text('Cetak Struk'),
         style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF7C4DFF),
+          foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
     );

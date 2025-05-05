@@ -19,7 +19,11 @@ class HomeMenuGrid extends StatelessWidget {
               children: [
                 Text(
                   section['title'],
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A237E), // Deep Blue
+                  ),
                 ),
                 const SizedBox(height: 12),
                 _buildGrid(section['items']),
@@ -53,22 +57,33 @@ class HomeMenuGrid extends StatelessWidget {
       onTap: () => controller.handleMenuTap(item),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.blue.shade100,
+          color: const Color(0xFFE8EAF6), // Light Indigo
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
+              color: Colors.deepPurple.withOpacity(0.1),
               blurRadius: 8,
-              spreadRadius: 4,
+              spreadRadius: 2,
             )
           ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(HomeModel.getIconData(item['icon']), size: 40, color: Colors.blue),
+            Icon(
+              HomeModel.getIconData(item['icon']),
+              size: 40,
+              color: const Color(0xFF7C4DFF), // Electric Violet
+            ),
             const SizedBox(height: 8),
-            Text(item['title'], textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w500)),
+            Text(
+              item['title'],
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1A237E), // Deep Blue
+              ),
+            ),
           ],
         ),
       ),
