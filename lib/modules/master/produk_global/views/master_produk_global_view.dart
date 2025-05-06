@@ -41,41 +41,49 @@ class _MasterProdukGlobalViewState extends State<MasterProdukGlobalView> {
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             child: TextField(
               controller: _searchController,
+              onChanged: _onSearchChanged,
               decoration: InputDecoration(
-                labelText: "Cari Produk",
-                labelStyle: TextStyle(color: Color(0xFF7C4DFF)),
+                hintText: "Cari Produk...",
+                hintStyle: TextStyle(color: Colors.grey.shade500),
+                filled: true,
+                fillColor: Colors.grey.shade100,
                 prefixIcon: Icon(Icons.search, color: Color(0xFF7C4DFF)),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
                 focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF7C4DFF)),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Color(0xFF7C4DFF), width: 2),
                 ),
               ),
-              onChanged: _onSearchChanged,
             ),
           ),
           Expanded(
             child: Obx(() {
-              if (_controller.isLoading.value && _controller.products.isEmpty) {
-                return Center(child: CircularProgressIndicator());
-              }
+              return AnimatedSwitcher(
+                duration: Duration(milliseconds: 300),
+                child: _controller.isLoading.value && _controller.products.isEmpty
+                    ? Center(child: CircularProgressIndicator())
+                    : ListView.builder(
+                        key: ValueKey(_controller.products.length), // For smooth switching
+                        controller: _scrollController,
+                        itemCount: _controller.products.length + (_controller.isLastPage.value ? 0 : 1),
+                        itemBuilder: (context, index) {
+                          if (index == _controller.products.length) {
+                            return Center(child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: CircularProgressIndicator(),
+                            ));
+                          }
 
-              return ListView.builder(
-                controller: _scrollController,
-                itemCount: _controller.products.length + 1,
-                itemBuilder: (context, index) {
-                  if (index == _controller.products.length) {
-                    return _controller.isLastPage.value
-                        ? SizedBox.shrink()
-                        : Center(child: CircularProgressIndicator());
-                  }
-
-                  var product = _controller.products[index];
-                  return ProductListItem(product: product);
-                },
+                          var product = _controller.products[index];
+                          return ProductListItem(product: product);
+                        },
+                      ),
               );
             }),
           ),
@@ -100,40 +108,63 @@ class ProductListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      elevation: 5,
-      child: ListTile(
-        onTap: () => _controller.goToDetailProduct(product["productId"]),
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.network(
-            product["image"],
-            width: 60,
-            height: 60,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Icon(Icons.image_not_supported, size: 60),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: Material(
+        borderRadius: BorderRadius.circular(12),
+        elevation: 4,
+        color: Colors.white,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => _controller.goToDetailProduct(product["productId"]),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    product["image"] ?? "",
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        Icon(Icons.image_not_supported, size: 60, color: Colors.grey),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product["productName"] ?? "Nama Tidak Tersedia",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Color(0xFF7C4DFF),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Rp ${product["finalPrice"] ?? 0}",
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        "Stok: ${product["stock"] ?? 0}",
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.arrow_forward_ios, size: 16, color: Color(0xFF7C4DFF)),
+              ],
+            ),
           ),
         ),
-        title: Text(
-          product["productName"] ?? "Nama Tidak Tersedia",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF7C4DFF)),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Rp ${product["finalPrice"] ?? 0}",
-              style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              "Stok: ${product["stock"] ?? 0}",
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Color(0xFF7C4DFF)),
       ),
     );
   }

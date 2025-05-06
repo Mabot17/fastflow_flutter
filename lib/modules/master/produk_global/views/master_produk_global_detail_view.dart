@@ -26,64 +26,94 @@ class MasterProdukGlobalDetailView extends StatelessWidget {
         }
 
         var product = _controller.product;
+
         return SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: double.infinity,
-                height: 250,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: NetworkImage(product["image"]),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      product["productName"],
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      "Rp ${product["finalPrice"]}",
-                      style: TextStyle(fontSize: 20, color: Colors.green, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      "Kategori: ${product["categoryNameLvl2"] ?? "Tidak tersedia"}",
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      "Stok: ${product["stock"]}",
-                      style: TextStyle(fontSize: 16, color: product["stock"] > 0 ? Colors.blue : Colors.red),
-                    ),
-                    SizedBox(height: 20),
-                    Container(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 5,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                    child: Image.network(
+                      product["image"],
                       width: double.infinity,
-                      height: 250,
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: NetworkImage("${ApiConfig.baseUrl}${product["productBarcodeImage"] ?? ''}"),
-                          fit: BoxFit.cover,
-                        ),
+                      height: 180,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        height: 180,
+                        color: Colors.grey[300],
+                        child: Center(child: Icon(Icons.broken_image, size: 48)),
                       ),
                     ),
-                    SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: Text("Tambahkan ke Keranjang"),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          product["productName"],
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF7C4DFF)),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "Rp ${product["finalPrice"]}",
+                          style: TextStyle(fontSize: 18, color: Colors.green, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "Kategori: ${product["categoryNameLvl2"] ?? "Tidak tersedia"}",
+                          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "Stok: ${product["stock"]}",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: product["stock"] > 0 ? Colors.blue : Colors.red,
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            "${ApiConfig.baseUrl}${product["productBarcodeImage"] ?? ''}",
+                            width: double.infinity,
+                            height: 100,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              height: 100,
+                              color: Colors.grey[200],
+                              child: Center(child: Icon(Icons.qr_code_2, size: 40)),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () {},
+                            icon: Icon(Icons.add_shopping_cart, color: Colors.white),
+                            label: Text("Tambahkan ke Keranjang",
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFF7C4DFF),
+                              padding: EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        )
+                      ],
                     ),
-                  ],
-                ),
+                  )
+                ],
               ),
-            ],
+            ),
           ),
         );
       }),
