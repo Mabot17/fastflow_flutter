@@ -58,7 +58,7 @@ class HomeView extends StatelessWidget {
         case 2:
           return const NotificationView();
         case 3:
-          return const ProfileView();
+          return ProfileView(controller: controller);
         default:
           return const Center(child: Text('Halaman tidak ditemukan'));
       }

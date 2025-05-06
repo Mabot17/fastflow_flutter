@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import '../controllers/home_controller.dart';
+import 'package:get/get.dart';
 
 class ProfileView extends StatelessWidget {
-  const ProfileView({super.key});
+  final HomeController controller;
+  const ProfileView({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -38,21 +41,20 @@ class ProfileView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-
             // User Info Section
-            const Center(
+            Center(
               child: Column(
                 children: [
-                  Text(
-                    'Nama Pengguna',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1A237E),
-                    ),
-                  ),
-                  SizedBox(height: 6),
-                  Text(
+                  Obx(() => Text(
+                        controller.username.value,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1A237E),
+                        ),
+                      )),
+                  const SizedBox(height: 6),
+                  const Text(
                     'username@example.com',
                     style: TextStyle(
                       fontSize: 16,
