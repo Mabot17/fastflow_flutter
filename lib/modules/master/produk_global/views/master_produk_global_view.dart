@@ -123,13 +123,16 @@ class ProductListItem extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    product["image"] ?? "",
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        Icon(Icons.image_not_supported, size: 60, color: Colors.grey),
+                  child: Hero(
+                    tag: 'product-image-${product["productId"]}',
+                    child: Image.network(
+                      product["image"] ?? "",
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Icon(Icons.image_not_supported, size: 60, color: Colors.grey),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
