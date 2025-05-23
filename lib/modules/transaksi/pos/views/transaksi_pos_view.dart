@@ -139,7 +139,6 @@ class TransaksiPosView extends StatelessWidget {
                   },
                 );
               },
-              icon: Icon(Icons.attach_money),
               label: Text("Bayar"),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
