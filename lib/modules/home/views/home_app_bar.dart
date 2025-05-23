@@ -65,6 +65,40 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         IconButton(
+          onPressed: () => controller.handleMenuTap({'route': '/pos'}),
+          tooltip: "Keranjang Belanja",
+          icon: Obx(() {
+            final count = controller.keranjangCount; // pastikan ini ada
+            return Stack(
+              children: [
+                const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+                if (count > 0)
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      child: Text(
+                        '$count',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          }),
+        ),
+
+        IconButton(
           icon: const Icon(Icons.info_outline, color: Colors.white),
           onPressed: _showInfoDialog,
           tooltip: "Tentang Aplikasi",
