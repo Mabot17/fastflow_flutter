@@ -123,7 +123,7 @@ class TransaksiPosListView extends StatelessWidget {
                   backgroundColor: Colors.deepPurple,
                 ),
                 onTap: () {
-                  // TODO: Navigasi ke detail transaksi
+                  _controller.goToDetail(transaksi.id);
                 },
               ),
             );

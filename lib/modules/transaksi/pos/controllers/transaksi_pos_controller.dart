@@ -33,6 +33,7 @@ class TransaksiPosController extends GetxController {
       DatabaseHelper(); // Menggunakan instance dari DatabaseHelper
   var isLoading = true.obs;
   var transaksiList = <Transaksi>[].obs;
+  var transaksiById = Rxn<Map<String, dynamic>>();
   var cartItems = <String, Map<String, dynamic>>{}.obs;
 
   @override
@@ -92,6 +93,23 @@ class TransaksiPosController extends GetxController {
     cartItems.refresh();
   }
 
+  Future<String> generateNoFaktur() async {
+    final db = await DatabaseHelper().database;
+    final result = await db.rawQuery(
+      'SELECT no_faktur FROM transaksi ORDER BY id DESC LIMIT 1',
+    );
+
+    if (result.isNotEmpty && result[0]['no_faktur'] != null) {
+      final lastFaktur = result[0]['no_faktur'] as String;
+      // Format no faktur contoh: INV-00001
+      final numberPart = lastFaktur.replaceAll(RegExp(r'[^0-9]'), '');
+      final nextNumber = (int.tryParse(numberPart) ?? 0) + 1;
+      return 'INV-${nextNumber.toString().padLeft(5, '0')}';
+    } else {
+      return 'INV-00001';
+    }
+  }
+
   Future<void> loadTransaksi() async {
     final data = await getTransaksiList();
     transaksiList.assignAll(data);
@@ -116,23 +134,6 @@ class TransaksiPosController extends GetxController {
       }
       return idTransaksi;
     });
-  }
-
-  Future<String> generateNoFaktur() async {
-    final db = await DatabaseHelper().database;
-    final result = await db.rawQuery(
-      'SELECT no_faktur FROM transaksi ORDER BY id DESC LIMIT 1',
-    );
-
-    if (result.isNotEmpty && result[0]['no_faktur'] != null) {
-      final lastFaktur = result[0]['no_faktur'] as String;
-      // Format no faktur contoh: INV-00001
-      final numberPart = lastFaktur.replaceAll(RegExp(r'[^0-9]'), '');
-      final nextNumber = (int.tryParse(numberPart) ?? 0) + 1;
-      return 'INV-${nextNumber.toString().padLeft(5, '0')}';
-    } else {
-      return 'INV-00001';
-    }
   }
 
   Future<void> submitTransaksi({String caraBayar = 'Tunai'}) async {
@@ -182,7 +183,38 @@ class TransaksiPosController extends GetxController {
     }
   }
 
-  void goToDetail(int transactionId) {
+  Future<void> goToDetail(int transactionId) async {
+    print(transactionId);
+    await loadTransaksiById(transactionId);
+    print('🟢 TRANSAKSI: ${transaksiById}');
     Get.toNamed('${AppRoutesConstants.pos}/$transactionId');
   }
+
+  Future<void> loadTransaksiById(int id) async {
+    try {
+      final db = await DatabaseHelper().database;
+      final transaksi = await db.query(
+        'transaksi',
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1,
+      );
+
+      if (transaksi.isNotEmpty) {
+        final idTransaksi = transaksi.first['id'];
+        final detail = await db.query(
+          'transaksi_detail',
+          where: 'id_transaksi = ?',
+          whereArgs: [idTransaksi],
+        );
+
+        transaksiById.value = {...transaksi.first, 'detail': detail};
+      } else {
+        transaksiById.value = null;
+      }
+    } catch (e) {
+      print('❌ Error loadTransaksiById: $e');
+    }
+  }
+
 }
