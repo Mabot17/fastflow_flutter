@@ -1,17 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../home/controllers/home_controller.dart';
+import '../../../transaksi/pos/controllers/transaksi_pos_controller.dart';
 import '../../../../widgets/custom_app_bar.dart';
 
 class TransaksiPosView extends StatelessWidget {
-  final HomeController _homeController = Get.find<HomeController>();
+  final TransaksiPosController _pos_controller = Get.find<TransaksiPosController>();
+  final HomeController _home_controller = Get.find<HomeController>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(title: 'Keranjang Belanja'),
+      appBar: CustomAppBar(
+        title: 'Keranjang Belanja',
+        actions: [
+          IconButton(
+            icon: Icon(Icons.description), // icon dokumen
+            tooltip: 'Lihat Daftar Dokumen',
+            onPressed: () => _home_controller.handleMenuTap({'route': '/pos/list'}),
+          ),
+        ],
+      ),
       body: Obx(() {
-        if (_homeController.cartItems.isEmpty) {
+        if (_pos_controller.cartItems.isEmpty) {
           return Center(child: Text('Keranjang masih kosong'));
         }
         return Column(
@@ -25,7 +36,7 @@ class TransaksiPosView extends StatelessWidget {
   }
 
   Widget _buildCartList() {
-    final cartMap = _homeController.cartItems;
+    final cartMap = _pos_controller.cartItems;
 
     return ListView.separated(
       padding: EdgeInsets.all(16),
@@ -77,14 +88,14 @@ class TransaksiPosView extends StatelessWidget {
                     IconButton(
                       icon: Icon(Icons.remove_circle_outline),
                       onPressed: () {
-                        _homeController.decreaseQty(productId);
+                        _pos_controller.decreaseQty(productId);
                       },
                     ),
                     Text(qty.toString(), style: TextStyle(fontSize: 16)),
                     IconButton(
                       icon: Icon(Icons.add_circle_outline),
                       onPressed: () {
-                        _homeController.increaseQty(productId);
+                        _pos_controller.increaseQty(productId);
                       },
                     ),
                   ],
@@ -99,7 +110,7 @@ class TransaksiPosView extends StatelessWidget {
 
   Widget _buildTotalSection() {
     return Obx(() {
-      final total = _homeController.cartItems.values.fold<double>(
+      final total = _pos_controller.cartItems.values.fold<double>(
         0.0,
         (sum, item) {
           final price = item["product"]["finalPrice"] ?? 0;
@@ -133,7 +144,7 @@ class TransaksiPosView extends StatelessWidget {
                   content: Text("Total: Rp ${total.toInt()}"),
                   textConfirm: "OK",
                   onConfirm: () {
-                    _homeController.clearCart();
+                    _pos_controller.clearCart();
                     Get.back();
                     Get.snackbar("Sukses", "Pembayaran selesai");
                   },

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/master_produk_global_controller.dart';
 import '../../../../widgets/custom_app_bar.dart';
+import '../../../transaksi/pos/controllers/transaksi_pos_controller.dart';
 import '../../../home/controllers/home_controller.dart';
 
 
@@ -11,8 +12,9 @@ class MasterProdukGlobalView extends StatefulWidget {
 }
 
 class _MasterProdukGlobalViewState extends State<MasterProdukGlobalView> {
-  final MasterProdukGlobalController _controller = Get.put(MasterProdukGlobalController());
   final HomeController _home_controller = Get.find<HomeController>();
+  final MasterProdukGlobalController _controller = Get.put(MasterProdukGlobalController());
+  final TransaksiPosController _pos_controller = Get.find<TransaksiPosController>();
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
 
@@ -95,7 +97,7 @@ class _MasterProdukGlobalViewState extends State<MasterProdukGlobalView> {
         ],
       ),
       floatingActionButton: Obx(() {
-        int itemCount = _home_controller.keranjangCount;
+        int itemCount = _pos_controller.keranjangCount;
         return Stack(
           clipBehavior: Clip.none,
           children: [
@@ -155,7 +157,7 @@ class ProductListItem extends StatefulWidget {
 }
 
 class _ProductListItemState extends State<ProductListItem> {
-  final HomeController _homeController = Get.find<HomeController>();
+  final TransaksiPosController _pos_controller = Get.find<TransaksiPosController>();
   final RxInt qty = 1.obs; // Ubah ke RxInt
 
   @override
@@ -197,7 +199,7 @@ class _ProductListItemState extends State<ProductListItem> {
                             onPressed: () {
                               if (qty.value > 1) {
                                 qty.value--;
-                                _homeController.updateQtyInCart(widget.product["productId"].toString(), qty.value);
+                                _pos_controller.updateQtyInCart(widget.product["productId"].toString(), qty.value);
                               }
                             },
                           ),
@@ -206,7 +208,7 @@ class _ProductListItemState extends State<ProductListItem> {
                             icon: Icon(Icons.add_circle_outline),
                             onPressed: () {
                               qty.value++;
-                              _homeController.updateQtyInCart(widget.product["productId"].toString(), qty.value);
+                              _pos_controller.updateQtyInCart(widget.product["productId"].toString(), qty.value);
                             },
                           ),
                         ],
@@ -220,7 +222,7 @@ class _ProductListItemState extends State<ProductListItem> {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        _homeController.addToCart(widget.product, qty.value);
+                        _pos_controller.addToCart(widget.product, qty.value);
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(

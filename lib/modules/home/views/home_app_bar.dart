@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/home_controller.dart';
+import '../../transaksi/pos/controllers/transaksi_pos_controller.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onOpenDrawer;
@@ -29,6 +30,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final HomeController controller = Get.find<HomeController>();
+    final TransaksiPosController _pos_controller = Get.find<TransaksiPosController>();
+
     return AppBar(
       elevation: 6,
       backgroundColor: const Color(0xFF1A237E),
@@ -68,7 +71,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           onPressed: () => controller.handleMenuTap({'route': '/pos'}),
           tooltip: "Keranjang Belanja",
           icon: Obx(() {
-            final count = controller.keranjangCount; // pastikan ini ada
+            int count = _pos_controller.keranjangCount;
             return Stack(
               children: [
                 const Icon(Icons.shopping_cart_outlined, color: Colors.white),

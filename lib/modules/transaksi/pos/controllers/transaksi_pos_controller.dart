@@ -1,41 +1,82 @@
 import 'package:get/get.dart';
 import '../../../../routes/app_routes_constant.dart'; // Import konstanta
 
-class Transaction {
+class Transaksi {
   final int id;
-  final String name;
-  final double amount;
+  final double total;
+  final String tanggal;
 
-  Transaction({required this.id, required this.name, required this.amount});
+  Transaksi({required this.id, required this.total, required this.tanggal});
 }
 
 class TransaksiPosController extends GetxController {
   var isLoading = true.obs;
-  var transactions = <Transaction>[].obs;
+  var transaksiList = <Transaksi>[].obs;
+  var cartItems = <String, Map<String, dynamic>>{}.obs;
 
   @override
   void onInit() {
     super.onInit();
-    _loadTransactions();
+    // Dummy data, nanti bisa diganti dari API
+    transaksiList.value = [
+      Transaksi(id: 1, total: 120000, tanggal: '2025-05-25'),
+      Transaksi(id: 2, total: 89000, tanggal: '2025-05-24'),
+    ];
   }
 
-  void _loadTransactions() async {
-    await Future.delayed(Duration(seconds: 2)); // Simulasi loading
-    transactions.assignAll([
-      Transaction(id: 1, name: 'Order #1001', amount: 250.0),
-      Transaction(id: 2, name: 'Order #1002', amount: 100.0),
-      Transaction(id: 3, name: 'Order #1003', amount: 75.5),
-    ]);
-    isLoading.value = false;
+  void increaseQty(String productId) {
+    if (cartItems.containsKey(productId)) {
+      cartItems[productId]!["qty"] += 1;
+      cartItems.refresh();
+    }
   }
 
-  void addTransaction() {
-    int newId = transactions.length + 1;
-    transactions.add(Transaction(
-      id: newId,
-      name: 'Order #$newId',
-      amount: (50 + newId * 10).toDouble(),
-    ));
+  void decreaseQty(String productId) {
+    if (cartItems.containsKey(productId)) {
+      if (cartItems[productId]!["qty"] > 1) {
+        cartItems[productId]!["qty"] -= 1;
+      } else {
+        cartItems.remove(productId);
+      }
+      cartItems.refresh();
+    }
+  }
+
+  void updateQtyInCart(String productId, int qty) {
+    if (cartItems.containsKey(productId)) {
+      cartItems[productId]!["qty"] = qty;
+      cartItems.refresh();
+    }
+  }
+
+
+  // Getter hitung total qty di keranjang
+  int get keranjangCount => cartItems.length; // jumlah jenis barang
+
+  void addToCart(Map<String, dynamic> product, int qty) {
+    String id = product["productId"].toString();
+    if (cartItems.containsKey(id)) {
+      cartItems[id]!["qty"] = (cartItems[id]!["qty"] ?? 0) + qty;
+    } else {
+      cartItems[id] = {
+        "product": product,
+        "qty": qty,
+      };
+    }
+    // Observable cartItems sudah otomatis update, tidak perlu update() kecuali pakai update()
+    cartItems.refresh();
+  }
+
+  void removeFromCart(String productId) {
+    if (cartItems.containsKey(productId)) {
+      cartItems.remove(productId);
+      cartItems.refresh();
+    }
+  }
+
+  void clearCart() {
+    cartItems.clear();
+    cartItems.refresh();
   }
 
   void goToDetail(int transactionId) {
