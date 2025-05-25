@@ -36,7 +36,7 @@ class DatabaseHelper {
         // ✅ Cek apakah tabel 'transaksi' sudah ada
         final existingTables = await getAllTables();
 
-        if (!existingTables.contains('transaksi') || !existingTables.contains('produk')) {
+        if (!existingTables.contains('transaksi') || !existingTables.contains('transaksi_detail')) {
           print("ℹ️ [Database] Beberapa tabel belum ada. Membuat tabel...");
           await createTables();
         } else {
@@ -87,30 +87,37 @@ class DatabaseHelper {
     return await db.delete(tableName, where: '$idColumn = ?', whereArgs: [id]);
   }
 
-  // Tambahkan dalam class DatabaseHelper
   Future<void> createTables() async {
     final db = await database;
 
     await db.execute('''
       CREATE TABLE IF NOT EXISTS transaksi (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        total REAL,
-        tanggal TEXT
+        no_faktur TEXT UNIQUE,
+        tanggal TEXT,
+        total_bayar REAL,
+        cara_bayar TEXT
       )
     ''');
 
-    // Tambahkan tabel lain jika perlu
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS produk (
+      CREATE TABLE IF NOT EXISTS transaksi_detail (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nama TEXT,
+        id_transaksi INTEGER,
+        produk_id INTEGER,
+        produk_barcode TEXT,
+        produk_nama TEXT,
+        produk_sku TEXT,
+        produk_plu TEXT,
         harga REAL,
-        stok INTEGER
+        qty INTEGER,
+        total REAL,
+        url_image TEXT,
+        FOREIGN KEY (id_transaksi) REFERENCES transaksi(id) ON DELETE CASCADE
       )
     ''');
 
-    // Log (optional)
-    print("✅ [Database] Tabel berhasil dicek/dibuat.");
+    print("✅ [Database] Tabel transaksi & transaksi_detail berhasil dicek/dibuat.");
   }
 
 }

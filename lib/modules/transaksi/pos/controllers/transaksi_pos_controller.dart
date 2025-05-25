@@ -1,15 +1,36 @@
 import 'package:get/get.dart';
 import '../../../../routes/app_routes_constant.dart'; // Import konstanta
+import '../../../../core/database/database_helper.dart';
 
 class Transaksi {
   final int id;
-  final double total;
+  final String noFaktur;
   final String tanggal;
+  final double totalBayar;
+  final String caraBayar;
 
-  Transaksi({required this.id, required this.total, required this.tanggal});
+  Transaksi({
+    required this.id,
+    required this.noFaktur,
+    required this.tanggal,
+    required this.totalBayar,
+    required this.caraBayar,
+  });
+
+  factory Transaksi.fromMap(Map<String, dynamic> map) {
+    return Transaksi(
+      id: map['id'] as int,
+      noFaktur: map['no_faktur'] ?? '',
+      tanggal: map['tanggal'] ?? '',
+      totalBayar: (map['total_bayar'] as num).toDouble(),
+      caraBayar: map['cara_bayar'] ?? '',
+    );
+  }
 }
 
 class TransaksiPosController extends GetxController {
+  final DatabaseHelper _dbHelper =
+      DatabaseHelper(); // Menggunakan instance dari DatabaseHelper
   var isLoading = true.obs;
   var transaksiList = <Transaksi>[].obs;
   var cartItems = <String, Map<String, dynamic>>{}.obs;
@@ -17,11 +38,7 @@ class TransaksiPosController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Dummy data, nanti bisa diganti dari API
-    transaksiList.value = [
-      Transaksi(id: 1, total: 120000, tanggal: '2025-05-25'),
-      Transaksi(id: 2, total: 89000, tanggal: '2025-05-24'),
-    ];
+    loadTransaksi();
   }
 
   void increaseQty(String productId) {
@@ -49,7 +66,6 @@ class TransaksiPosController extends GetxController {
     }
   }
 
-
   // Getter hitung total qty di keranjang
   int get keranjangCount => cartItems.length; // jumlah jenis barang
 
@@ -58,10 +74,7 @@ class TransaksiPosController extends GetxController {
     if (cartItems.containsKey(id)) {
       cartItems[id]!["qty"] = (cartItems[id]!["qty"] ?? 0) + qty;
     } else {
-      cartItems[id] = {
-        "product": product,
-        "qty": qty,
-      };
+      cartItems[id] = {"product": product, "qty": qty};
     }
     // Observable cartItems sudah otomatis update, tidak perlu update() kecuali pakai update()
     cartItems.refresh();
@@ -77,6 +90,96 @@ class TransaksiPosController extends GetxController {
   void clearCart() {
     cartItems.clear();
     cartItems.refresh();
+  }
+
+  Future<void> loadTransaksi() async {
+    final data = await getTransaksiList();
+    transaksiList.assignAll(data);
+  }
+
+  Future<List<Transaksi>> getTransaksiList() async {
+    final data = await _dbHelper.getDataFromTable('transaksi');
+    return data.map((e) => Transaksi.fromMap(e)).toList();
+  }
+
+  Future<int> insertTransaksiWithDetails(
+    Map<String, dynamic> transaksiData,
+    List<Map<String, dynamic>> detailList,
+  ) async {
+    final db = await _dbHelper.database;
+    return await db.transaction((txn) async {
+      final idTransaksi = await txn.insert('transaksi', transaksiData);
+
+      for (var detail in detailList) {
+        detail['id_transaksi'] = idTransaksi;
+        await txn.insert('transaksi_detail', detail);
+      }
+      return idTransaksi;
+    });
+  }
+
+  Future<String> generateNoFaktur() async {
+    final db = await DatabaseHelper().database;
+    final result = await db.rawQuery(
+      'SELECT no_faktur FROM transaksi ORDER BY id DESC LIMIT 1',
+    );
+
+    if (result.isNotEmpty && result[0]['no_faktur'] != null) {
+      final lastFaktur = result[0]['no_faktur'] as String;
+      // Format no faktur contoh: INV-00001
+      final numberPart = lastFaktur.replaceAll(RegExp(r'[^0-9]'), '');
+      final nextNumber = (int.tryParse(numberPart) ?? 0) + 1;
+      return 'INV-${nextNumber.toString().padLeft(5, '0')}';
+    } else {
+      return 'INV-00001';
+    }
+  }
+
+  Future<void> submitTransaksi({String caraBayar = 'Tunai'}) async {
+    if (cartItems.isEmpty) return;
+
+    final noFaktur = await generateNoFaktur();
+
+    final totalBayar = cartItems.entries.fold<double>(
+      0,
+      (sum, e) =>
+          sum +
+          ((e.value["product"]["finalPrice"] as num) * (e.value["qty"] as int)),
+    );
+
+    final transaksiData = {
+      'no_faktur': noFaktur,
+      'tanggal': DateTime.now().toIso8601String(),
+      'total_bayar': totalBayar,
+      'cara_bayar': caraBayar,
+    };
+
+    final detailList =
+        cartItems.entries.map((e) {
+          final p = e.value["product"];
+          final qty = e.value["qty"];
+          final harga = (p["finalPrice"] as num).toDouble();
+          return {
+            'produk_id': int.tryParse(p["productId"].toString()) ?? 0,
+            'produk_barcode': p["productBarcode"],
+            'produk_nama': p["productName"],
+            'produk_sku': p["sku"],
+            'produk_plu': p["plu"],
+            'harga': harga,
+            'qty': qty,
+            'total': harga * qty,
+            'url_image': p["image"],
+          };
+        }).toList();
+
+    try {
+      insertTransaksiWithDetails(transaksiData, detailList);
+      clearCart();
+      loadTransaksi();
+      print("✅ Transaksi berhasil disimpan dengan no_faktur: $noFaktur");
+    } catch (e) {
+      print("❌ Gagal submit transaksi: $e");
+    }
   }
 
   void goToDetail(int transactionId) {

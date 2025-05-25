@@ -144,7 +144,7 @@ class TransaksiPosView extends StatelessWidget {
                   content: Text("Total: Rp ${total.toInt()}"),
                   textConfirm: "OK",
                   onConfirm: () {
-                    _pos_controller.clearCart();
+                    _pos_controller.submitTransaksi();
                     Get.back();
                     Get.snackbar("Sukses", "Pembayaran selesai");
                   },
