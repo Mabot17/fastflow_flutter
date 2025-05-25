@@ -31,7 +31,7 @@ class HomeDrawer extends StatelessWidget {
                 ),
                 currentAccountPicture: const CircleAvatar(
                   backgroundImage: NetworkImage(
-                    'https://media-cgk1-2.cdn.whatsapp.net/v/t61.24694-24/424444826_949488943434172_7615880461474394281_n.jpg?ccb=11-4&oh=01_Q5Aa1QGecpR-ahJIPLkou73uhQP9pDjRt6h3flgCZCVBR9eEOw&oe=6825C4A4&_nc_sid=5e03e0&_nc_cat=106',
+                    'https://media-cgk1-2.cdn.whatsapp.net/v/t61.24694-24/424444826_949488943434172_7615880461474394281_n.jpg?ccb=11-4&oh=01_Q5Aa1gFjI_JQq3nDa61EXxMSxdLQ14XQiY_f_nFMn2IE3TpsAw&oe=683FEA64&_nc_sid=5e03e0&_nc_cat=106',
                   ),
                 ),
               )),
