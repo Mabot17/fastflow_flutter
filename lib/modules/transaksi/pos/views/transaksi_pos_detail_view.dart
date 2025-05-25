@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import '../../../../widgets/custom_app_bar.dart';
 import '../controllers/transaksi_pos_controller.dart';
 
 class TransaksiPosDetailView extends StatelessWidget {
@@ -10,7 +11,10 @@ class TransaksiPosDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Detail Transaksi')),
+      appBar: CustomAppBar(
+        title: 'Detail Transaksi',
+        leading: BackButton(),
+      ),
       body: Obx(() {
         final trx = controller.transaksiById.value;
 
