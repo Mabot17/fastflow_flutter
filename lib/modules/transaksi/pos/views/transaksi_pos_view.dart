@@ -32,6 +32,16 @@ class TransaksiPosView extends StatelessWidget {
           ],
         );
       }),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 80), // kasih jarak bawah supaya gak nempel total section
+        child: FloatingActionButton(
+          onPressed: () => _home_controller.handleMenuTap({'route': '/products_global'}),
+          backgroundColor: Color(0xFF7C4DFF),
+          foregroundColor: Colors.white,
+          child: Icon(Icons.add),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
@@ -146,15 +156,26 @@ class TransaksiPosView extends StatelessWidget {
                   onConfirm: () {
                     _pos_controller.submitTransaksi();
                     Get.back();
-                    Get.snackbar("Sukses", "Pembayaran selesai");
+                    Get.snackbar(
+                      "Sukses",
+                      "Pembayaran selesai",
+                      backgroundColor: Colors.green,
+                      colorText: Colors.white,
+                    );
                   },
                 );
               },
-              label: Text("Bayar"),
+              icon: Icon(Icons.payment, color: Colors.white),
+              label: Text(
+                "Bayar",
+                style: TextStyle(color: Colors.white),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
                 padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
           ],

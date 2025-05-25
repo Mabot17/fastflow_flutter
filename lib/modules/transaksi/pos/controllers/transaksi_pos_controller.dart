@@ -1,38 +1,13 @@
 import 'package:get/get.dart';
 import '../../../../routes/app_routes_constant.dart'; // Import konstanta
 import '../../../../core/database/database_helper.dart';
-
-class Transaksi {
-  final int id;
-  final String noFaktur;
-  final String tanggal;
-  final double totalBayar;
-  final String caraBayar;
-
-  Transaksi({
-    required this.id,
-    required this.noFaktur,
-    required this.tanggal,
-    required this.totalBayar,
-    required this.caraBayar,
-  });
-
-  factory Transaksi.fromMap(Map<String, dynamic> map) {
-    return Transaksi(
-      id: map['id'] as int,
-      noFaktur: map['no_faktur'] ?? '',
-      tanggal: map['tanggal'] ?? '',
-      totalBayar: (map['total_bayar'] as num).toDouble(),
-      caraBayar: map['cara_bayar'] ?? '',
-    );
-  }
-}
+import '../models/transaksi_pos_model.dart';
 
 class TransaksiPosController extends GetxController {
   final DatabaseHelper _dbHelper =
       DatabaseHelper(); // Menggunakan instance dari DatabaseHelper
   var isLoading = true.obs;
-  var transaksiList = <Transaksi>[].obs;
+  var transaksiList = <TransaksiModel>[].obs;
   var transaksiById = Rxn<Map<String, dynamic>>();
   var cartItems = <String, Map<String, dynamic>>{}.obs;
 
@@ -115,9 +90,9 @@ class TransaksiPosController extends GetxController {
     transaksiList.assignAll(data);
   }
 
-  Future<List<Transaksi>> getTransaksiList() async {
+  Future<List<TransaksiModel>> getTransaksiList() async {
     final data = await _dbHelper.getDataFromTable('transaksi');
-    return data.map((e) => Transaksi.fromMap(e)).toList();
+    return data.map((e) => TransaksiModel.fromMap(e)).toList();
   }
 
   Future<int> insertTransaksiWithDetails(
@@ -132,6 +107,7 @@ class TransaksiPosController extends GetxController {
         detail['id_transaksi'] = idTransaksi;
         await txn.insert('transaksi_detail', detail);
       }
+      goToDetail(idTransaksi);
       return idTransaksi;
     });
   }
@@ -177,7 +153,7 @@ class TransaksiPosController extends GetxController {
       insertTransaksiWithDetails(transaksiData, detailList);
       clearCart();
       loadTransaksi();
-      print("✅ Transaksi berhasil disimpan dengan no_faktur: $noFaktur");
+      print("✅ TransaksiModel berhasil disimpan dengan no_faktur: $noFaktur");
     } catch (e) {
       print("❌ Gagal submit transaksi: $e");
     }
@@ -216,5 +192,4 @@ class TransaksiPosController extends GetxController {
       print('❌ Error loadTransaksiById: $e');
     }
   }
-
 }
