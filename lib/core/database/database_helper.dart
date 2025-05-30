@@ -14,8 +14,6 @@ class DatabaseHelper {
   // Getter database untuk memastikan kita dapat mengakses DB yang aktif
   Future<Database> get database async {
     if (_database == null) {
-      // Consider initializing if null, or keep throwing for explicit open
-      // For this case, let's assume initDatabaseOffline is called first
        throw Exception('Database belum diinisialisasi. Pastikan untuk membuka database terlebih dahulu.');
     }
     return _database!;
@@ -106,18 +104,22 @@ class DatabaseHelper {
   // Get transactions for a specific date
   Future<List<Map<String, dynamic>>> getTransactionsByDate(DateTime date) async {
     final db = await database;
-    final dateStr = _formatDate(date);
+    // Use only the date part for comparison (yyyy-MM-dd)
+    final dateStr = DateFormat('yyyy-MM-dd').format(date);
+    // Log for debugging
+    print('[DatabaseHelper] Querying transactions for date: $dateStr');
     return await db.rawQuery('''
       SELECT t.*, SUM(td.qty) as total_items
       FROM transaksi t
       JOIN transaksi_detail td ON t.id = td.id_transaksi
-      WHERE date(t.tanggal) = ?
+      WHERE date(t.tanggal, 'localtime') = date(?, 'localtime')
       GROUP BY t.id
       ORDER BY t.tanggal DESC
     ''', [dateStr]);
   }
 
-  // Get transactions for a specific month
+  // Get transactions for a specific month (individual transactions)
+  // This method is used by the new monthly transactions list view
   Future<List<Map<String, dynamic>>> getTransactionsByMonth(DateTime date) async {
     final db = await database;
     final monthStr = _formatMonth(date);
@@ -146,6 +148,23 @@ class DatabaseHelper {
     ''', [startDateStr, endDateStr]);
   }
 
+  // --- New method for Monthly Aggregation ---
+  Future<List<Map<String, dynamic>>> getMonthlyAggregatedSales(int year) async {
+      final db = await database;
+      return await db.rawQuery('''
+        SELECT
+          strftime('%Y-%m', tanggal) as sale_month,
+          SUM(total_bayar) as monthly_total_sales,
+          SUM(td.qty) as monthly_total_items
+        FROM transaksi t
+        JOIN transaksi_detail td ON t.id = td.id_transaksi
+        WHERE strftime('%Y', tanggal) = ?
+        GROUP BY sale_month
+        ORDER BY sale_month DESC
+      ''', [year.toString()]);
+  }
+
+
   // Calculate total sales for a specific date
   Future<double> getTotalSalesByDate(DateTime date) async {
     final db = await database;
@@ -159,6 +178,7 @@ class DatabaseHelper {
   }
 
   // Calculate total sales for a specific month
+  // This method is kept but the monthly tab will use the new aggregation method
   Future<double> getTotalSalesByMonth(DateTime date) async {
     final db = await database;
     final monthStr = _formatMonth(date);
@@ -197,6 +217,7 @@ class DatabaseHelper {
   }
 
   // Calculate total items sold for a specific month
+  // This method is kept but the monthly tab will use the new aggregation method
   Future<int> getTotalItemsSoldByMonth(DateTime date) async {
     final db = await database;
     final monthStr = _formatMonth(date);
@@ -304,6 +325,4 @@ class DatabaseHelper {
 
     print("✅ [Database] 80 data dummy transaksi (20 per 3 bulan) berhasil dimasukkan.");
   }
-
-
 }

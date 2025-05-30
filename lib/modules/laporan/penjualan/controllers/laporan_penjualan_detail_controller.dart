@@ -1,9 +1,8 @@
 import 'package:get/get.dart';
-import '../services/laporan_penjualan_service.dart'; // Import the service
 import '../../../../core/database/database_helper.dart'; // Import DatabaseHelper for detail query
 
 class LaporanPenjualanDetailController extends GetxController {
-  final DatabaseHelper _dbHelper = DatabaseHelper(); // Use DatabaseHelper directly for detail query
+  final DatabaseHelper _dbHelper = Get.find<DatabaseHelper>(); // Use DatabaseHelper directly for detail query
   // Note: Could also add a method to LaporanPenjualanService for this
 
   var transaction = Rx<Map<String, dynamic>?>(null);
@@ -16,7 +15,13 @@ class LaporanPenjualanDetailController extends GetxController {
     super.onInit();
     final String? transactionId = Get.parameters['id'];
     if (transactionId != null) {
-      fetchTransactionDetail(int.parse(transactionId));
+      // Ensure the ID is parsed correctly
+      try {
+         fetchTransactionDetail(int.parse(transactionId));
+      } catch (e) {
+         errorMessage.value = 'Invalid Transaction ID.';
+         isLoading.value = false;
+      }
     } else {
       errorMessage.value = 'Transaction ID not provided.';
       isLoading.value = false;
@@ -30,17 +35,25 @@ class LaporanPenjualanDetailController extends GetxController {
     transactionDetails.clear();
 
     try {
-      // Fetch the main transaction data
-      final List<Map<String, dynamic>> transactionList = await _dbHelper.getDataFromTable('transaksi');
-      final mainTransaction = transactionList.firstWhereOrNull((t) => t['id'] == id);
+      final db = await _dbHelper.database; // Get the database instance
 
-      if (mainTransaction != null) {
-        transaction.value = mainTransaction;
+      // Fetch the main transaction data by ID
+      final List<Map<String, dynamic>> transactionList = await db.query(
+        'transaksi',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
 
-        // Fetch the transaction details (items)
-        final List<Map<String, dynamic>> detailsList = await _dbHelper.getDataFromTable('transaksi_detail');
-        final details = detailsList.where((d) => d['id_transaksi'] == id).toList();
-        transactionDetails.assignAll(details);
+      if (transactionList.isNotEmpty) {
+        transaction.value = transactionList.first;
+
+        // Fetch the transaction details (items) for this transaction ID
+        final List<Map<String, dynamic>> detailsList = await db.query(
+          'transaksi_detail',
+          where: 'id_transaksi = ?',
+          whereArgs: [id],
+        );
+        transactionDetails.assignAll(detailsList);
 
       } else {
         errorMessage.value = 'Transaction not found.';

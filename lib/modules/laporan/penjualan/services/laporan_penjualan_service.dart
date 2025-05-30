@@ -4,7 +4,8 @@ import 'package:get/get.dart';
 import '/core/database/database_helper.dart'; // Import DatabaseHelper
 
 class LaporanPenjualanService extends GetxService {
-  final DatabaseHelper _dbHelper = DatabaseHelper(); // Get instance of DatabaseHelper
+  // Use DatabaseHelper() directly as requested
+  final DatabaseHelper _dbHelper = DatabaseHelper();
 
   Future<List<Map<String, dynamic>>> getDailyTransactions(DateTime date) async {
     return await _dbHelper.getTransactionsByDate(date);
@@ -18,16 +19,15 @@ class LaporanPenjualanService extends GetxService {
     return await _dbHelper.getTotalItemsSoldByDate(date);
   }
 
+  // This method is still used by the controller for the monthly filter,
+  // but the list view will display aggregated data instead of these individual transactions.
+  // It is also used by the new monthly transactions list controller.
   Future<List<Map<String, dynamic>>> getMonthlyTransactions(DateTime date) async {
     return await _dbHelper.getTransactionsByMonth(date);
   }
 
-  Future<double> getMonthlyTotalSales(DateTime date) async {
-    return await _dbHelper.getTotalSalesByMonth(date);
-  }
-
-   Future<int> getMonthlyTotalItems(DateTime date) async {
-    return await _dbHelper.getTotalItemsSoldByMonth(date);
+  Future<List<Map<String, dynamic>>> getMonthlyAggregatedSales(int year) async {
+    return await _dbHelper.getMonthlyAggregatedSales(year);
   }
 
   Future<List<Map<String, dynamic>>> getDateRangeTransactions(DateTime startDate, DateTime endDate) async {

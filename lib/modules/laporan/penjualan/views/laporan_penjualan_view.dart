@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/laporan_penjualan_controller.dart'; // Import the controller
+import 'package:intl/intl.dart'; // Import for date formatting
+import '../../../../routes/app_routes_constant.dart'; // <-- Add this import at the top if not present
 
 class LaporanPenjualanView extends GetView<LaporanPenjualanController> {
   const LaporanPenjualanView({Key? key}) : super(key: key);
@@ -49,13 +51,14 @@ class LaporanPenjualanView extends GetView<LaporanPenjualanController> {
                                   contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
                                 ),
                                 child: Text(
-                                  controller.formatDate(controller.startDate.value.toIso8601String()),
-                                  style: TextStyle(fontSize: 16),
+                                  // Ensure startDate.value is not null before calling toIso8601String()
+                                  controller.formatDate(controller.startDate.value?.toIso8601String() ?? ''),
+                                  style: const TextStyle(fontSize: 16),
                                 ),
                               ),
                             ),
                           ),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                            Expanded(
                             child: InkWell(
                               onTap: () => controller.pickEndDate(),
@@ -68,8 +71,9 @@ class LaporanPenjualanView extends GetView<LaporanPenjualanController> {
                                    contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
                                 ),
                                 child: Text(
-                                  controller.formatDate(controller.endDate.value.toIso8601String()),
-                                  style: TextStyle(fontSize: 16),
+                                  // Ensure endDate.value is not null before calling toIso8601String()
+                                  controller.formatDate(controller.endDate.value?.toIso8601String() ?? ''),
+                                  style: const TextStyle(fontSize: 16),
                                 ),
                               ),
                             ),
@@ -134,7 +138,7 @@ class LaporanPenjualanView extends GetView<LaporanPenjualanController> {
 
             // --- Transaction List Header ---
             Text(
-              'Daftar Transaksi',
+              controller.activeFilter.value == SalesFilter.monthly ? 'Ringkasan Bulanan' : 'Daftar Transaksi',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -147,16 +151,21 @@ class LaporanPenjualanView extends GetView<LaporanPenjualanController> {
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 }
                 if (controller.transactions.isEmpty) {
-                  return Center(child: Text('Tidak ada data transaksi untuk periode ini.'));
+                  return Center(child: Text('Tidak ada data ${controller.activeFilter.value == SalesFilter.monthly ? "ringkasan bulanan" : "transaksi"} untuk periode ini.'));
                 }
                 return ListView.builder(
                   itemCount: controller.transactions.length,
                   itemBuilder: (context, index) {
-                    final transaction = controller.transactions[index];
-                    return _buildTransactionCard(transaction);
+                    final data = controller.transactions[index];
+                    // Use different card based on filter
+                    if (controller.activeFilter.value == SalesFilter.monthly) {
+                       return _buildMonthlySummaryCard(data); // Use monthly summary card
+                    } else {
+                       return _buildTransactionCard(data); // Use individual transaction card
+                    }
                   },
                 );
               }),
@@ -193,11 +202,12 @@ class LaporanPenjualanView extends GetView<LaporanPenjualanController> {
     );
   }
 
+  // Card for individual transactions (Daily, Date Range)
   Widget _buildTransactionCard(Map<String, dynamic> transaction) {
     // Assuming transaction map contains:
     // 'id', 'no_faktur', 'tanggal', 'total_bayar', 'total_items' (from the join query)
-    final int transactionId = transaction['id']; // Get the transaction ID
-    final String noFaktur = transaction['no_faktur'] ?? 'N/A';
+    final int transactionId = (transaction['id'] as int?) ?? 0; // Get the transaction ID, handle potential null
+    final String noFaktur = transaction['no_faktur'] ?? 'N/A'; // Restore Faktur
     final String tanggal = transaction['tanggal'] ?? '';
     final double totalBayar = (transaction['total_bayar'] as num?)?.toDouble() ?? 0.0;
     final int totalItems = (transaction['total_items'] as int?) ?? 0;
@@ -222,8 +232,8 @@ class LaporanPenjualanView extends GetView<LaporanPenjualanController> {
                   color: Colors.teal[800],
                 ),
               ),
-              const SizedBox(height: 4),
-              // Display Faktur number below date
+              const SizedBox(height: 4), // Restore space after Date
+              // Display Faktur number below date (only for individual transactions) - Restored
                Text(
                 'Faktur: $noFaktur',
                 style: TextStyle(
@@ -231,7 +241,7 @@ class LaporanPenjualanView extends GetView<LaporanPenjualanController> {
                   color: Colors.grey[700],
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 8), // Keep space before totals
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -267,22 +277,107 @@ class LaporanPenjualanView extends GetView<LaporanPenjualanController> {
                   ),
                 ],
               ),
-              // Remove the "Lihat Detail" button as the whole card is tappable
-              // const SizedBox(height: 8),
-              // Align(
-              //   alignment: Alignment.bottomRight,
-              //   child: TextButton(
-              //     onPressed: () {
-              //       // TODO: Navigate to transaction detail view if needed
-              //       print('View details for $noFaktur');
-              //     },
-              //     child: Text('Lihat Detail'),
-              //   ),
-              // ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  // Card for monthly aggregated data
+  // Make this card tappable to navigate to the monthly transactions list
+  Widget _buildMonthlySummaryCard(Map<String, dynamic> monthlyData) {
+    // Assuming monthlyData map contains:
+    // 'sale_month', 'monthly_total_sales', 'monthly_total_items'
+    final String saleMonth = monthlyData['sale_month'] ?? 'N/A';
+    final double monthlyTotalSales = (monthlyData['monthly_total_sales'] as num?)?.toDouble() ?? 0.0;
+    final int monthlyTotalItems = (monthlyData['monthly_total_items'] as int?) ?? 0;
+
+    // Parse the month string to get year and month for navigation
+    int year = 0;
+    int month = 0;
+    try {
+       // Parse the date assuming 'yyyy-MM' format from the database
+       final date = DateFormat('yyyy-MM').parse(saleMonth);
+       year = date.year;
+       month = date.month;
+    } catch (e) {
+       // Handle potential parsing errors, maybe log or show an error UI
+       print("Error parsing month string '$saleMonth': $e");
+       // Optionally set year/month to a default or invalid value
+       year = 0;
+       month = 0;
+    }
+
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12.0),
+      elevation: 1.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: InkWell(
+        onTap: () {
+          // Only navigate if parsing was successful
+          if (year != 0 && month != 0) {
+            // Use route constant for navigation!
+            Get.toNamed('${AppRoutesConstants.laporanPenjualan}/monthly/$year/$month');
+          } else {
+            // Optionally show a message if navigation is not possible due to bad data
+             Get.snackbar('Error', 'Tidak dapat menampilkan detail bulanan. Data bulan tidak valid.');
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Display Month prominently
+              Text(
+                controller.formatMonth(saleMonth), // Use the formatMonth helper
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.teal[800],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Total Penjualan Bulan Ini:',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                  ),
+                  Text(
+                    controller.formatCurrency(monthlyTotalSales),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green[700],
+                    ),
+                  ),
+                ],
+              ),
+             const SizedBox(height: 4),
+             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Total Barang Terjual Bulan Ini:',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                ),
+                Text(
+                  '$monthlyTotalItems item',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blueGrey[700],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    )); // Fixed: Removed the extra '}' and added closing parenthesis for Card widget
   }
 }

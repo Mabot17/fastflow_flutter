@@ -58,11 +58,12 @@ class LaporanPenjualanDetailView extends GetView<LaporanPenjualanDetailControlle
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Restore No. Faktur
                       Text(
                         'No. Faktur: ${transaction['no_faktur'] ?? 'N/A'}',
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal[800]),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 8), // Restore space after Faktur
                       Text(
                         'Tanggal: ${_formatDate(transaction['tanggal'] ?? '')}',
                         style: TextStyle(fontSize: 16, color: Colors.grey[700]),
