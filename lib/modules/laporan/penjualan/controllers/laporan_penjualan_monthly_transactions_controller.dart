@@ -89,12 +89,26 @@ class LaporanPenjualanMonthlyTransactionsController extends GetxController {
     return formatter.format(amount);
   }
 
+  // Helper to format date for display (for individual transactions)
+  // Updated to format the full datetime string
   String formatDate(String dateString) {
-    try {
+     try {
       final date = DateTime.parse(dateString);
-      return DateFormat('dd MMMM yyyy').format(date);
+      // Format includes date and time
+      return DateFormat('dd MMMM yyyy, HH:mm').format(date);
     } catch (e) {
-      return dateString;
+      return dateString; // Return original if parsing fails
+    }
+  }
+
+   // New helper to format only the time part
+  String formatTime(String dateString) {
+     try {
+      final date = DateTime.parse(dateString);
+      // Format only the time
+      return DateFormat('HH:mm').format(date);
+    } catch (e) {
+      return ''; // Return empty string if parsing fails
     }
   }
 }

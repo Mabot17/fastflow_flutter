@@ -205,35 +205,49 @@ class LaporanPenjualanView extends GetView<LaporanPenjualanController> {
   // Card for individual transactions (Daily, Date Range)
   Widget _buildTransactionCard(Map<String, dynamic> transaction) {
     // Assuming transaction map contains:
-    // 'id', 'no_faktur', 'tanggal', 'total_bayar', 'total_items' (from the join query)
-    final int transactionId = (transaction['id'] as int?) ?? 0; // Get the transaction ID, handle potential null
-    final String noFaktur = transaction['no_faktur'] ?? 'N/A'; // Restore Faktur
+    // 'id', 'no_faktur', 'tanggal', 'total_bayar', 'total_items', 'cara_bayar'
+    final int transactionId = (transaction['id'] as int?) ?? 0;
+    final String noFaktur = transaction['no_faktur'] ?? 'N/A';
     final String tanggal = transaction['tanggal'] ?? '';
     final double totalBayar = (transaction['total_bayar'] as num?)?.toDouble() ?? 0.0;
     final int totalItems = (transaction['total_items'] as int?) ?? 0;
+    final String caraBayar = transaction['cara_bayar'] ?? 'N/A'; // Get payment method
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12.0),
       elevation: 1.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-      child: InkWell( // Make the card tappable
-        onTap: () => controller.goToDetail(transactionId), // Navigate on tap
+      child: InkWell(
+        onTap: () => controller.goToDetail(transactionId),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Display Date prominently
-              Text(
-                controller.formatDate(tanggal),
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.teal[800],
-                ),
+              // Display Date on left, Time on right
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    // Format only the date part
+                    DateFormat('dd MMMM yyyy').format(DateTime.parse(tanggal)),
+                    style: TextStyle(
+                      fontSize: 16, // Slightly smaller font for date
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal[800],
+                    ),
+                  ),
+                   Text(
+                    // Format only the time part
+                    controller.formatTime(tanggal),
+                    style: TextStyle(
+                      fontSize: 14, // Smaller font for time
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4), // Restore space after Date
-              // Display Faktur number below date (only for individual transactions) - Restored
+              const SizedBox(height: 4),
                Text(
                 'Faktur: $noFaktur',
                 style: TextStyle(
@@ -241,7 +255,7 @@ class LaporanPenjualanView extends GetView<LaporanPenjualanController> {
                   color: Colors.grey[700],
                 ),
               ),
-              const SizedBox(height: 8), // Keep space before totals
+              const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -249,13 +263,34 @@ class LaporanPenjualanView extends GetView<LaporanPenjualanController> {
                     'Total Bayar:',
                     style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                   ),
-                  Text(
-                    controller.formatCurrency(totalBayar),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green[700],
-                    ),
+                  Row( // Row for Total Bayar and Payment Method
+                    children: [
+                      // Innovation: Payment Method Indicator
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _getPaymentMethodColor(caraBayar), // Helper to get color
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          caraBayar,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8), // Space between method and total
+                      Text(
+                        controller.formatCurrency(totalBayar),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green[700],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -282,6 +317,20 @@ class LaporanPenjualanView extends GetView<LaporanPenjualanController> {
         ),
       ),
     );
+  }
+
+  // Helper to get color based on payment method
+  Color _getPaymentMethodColor(String method) {
+    switch (method.toLowerCase()) {
+      case 'cash':
+        return Colors.green;
+      case 'qris':
+        return Colors.blue;
+      case 'debit':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
   }
 
   // Card for monthly aggregated data
