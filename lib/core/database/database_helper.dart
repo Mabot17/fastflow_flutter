@@ -39,6 +39,7 @@ class DatabaseHelper {
         if (!existingTables.contains('transaksi') || !existingTables.contains('transaksi_detail')) {
           print("ℹ️ [Database] Beberapa tabel belum ada. Membuat tabel...");
           await createTables();
+          await insertDummyDataPerTriwulan();
         } else {
           print("✅ [Database] Semua tabel sudah tersedia, skip create.");
         }
@@ -119,5 +120,54 @@ class DatabaseHelper {
 
     print("✅ [Database] Tabel transaksi & transaksi_detail berhasil dicek/dibuat.");
   }
+
+  Future<void> insertDummyDataPerTriwulan() async {
+    final db = await database;
+
+    final List<int> bulanList = [1, 4, 7, 10]; // Januari, April, Juli, Oktober
+    int transaksiCounter = 1;
+
+    for (int bulan in bulanList) {
+      for (int i = 1; i <= 20; i++) {
+        String noFaktur = 'F2025${transaksiCounter.toString().padLeft(4, '0')}';
+        String tanggal = DateTime(2025, bulan, (i % 28) + 1).toIso8601String();
+        double totalBayar = 15000 + i * 500;
+        String caraBayar = i % 3 == 0 ? 'QRIS' : i % 2 == 0 ? 'Cash' : 'Debit';
+
+        // Insert transaksi
+        int transaksiId = await db.insert('transaksi', {
+          'no_faktur': noFaktur,
+          'tanggal': tanggal,
+          'total_bayar': totalBayar,
+          'cara_bayar': caraBayar,
+        });
+
+        // Detail: 2 produk per transaksi
+        for (int j = 0; j < 2; j++) {
+          int qty = 1 + j;
+          double harga = 7000 + (j * 150);
+          double total = harga * qty;
+
+          await db.insert('transaksi_detail', {
+            'id_transaksi': transaksiId,
+            'produk_id': j + 1,
+            'produk_barcode': 'BRCD-${transaksiCounter * 10 + j}',
+            'produk_nama': 'Produk Triwulan ${j + 1}',
+            'produk_sku': 'SKU${j + 1}',
+            'produk_plu': 'PLU${j + 1}',
+            'harga': harga,
+            'qty': qty,
+            'total': total,
+            'url_image': '',
+          });
+        }
+
+        transaksiCounter++;
+      }
+    }
+
+    print("✅ [Database] 80 data dummy transaksi (20 per 3 bulan) berhasil dimasukkan.");
+  }
+
 
 }
