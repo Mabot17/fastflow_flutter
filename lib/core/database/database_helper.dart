@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'dart:async';
 import '/core/services/storage_service.dart'; // Import StorageService
+import 'package:intl/intl.dart'; // Add intl package for date formatting
 
 class DatabaseHelper {
   final StorageService _storage = StorageService(); // Pakai StorageService
@@ -13,7 +14,9 @@ class DatabaseHelper {
   // Getter database untuk memastikan kita dapat mengakses DB yang aktif
   Future<Database> get database async {
     if (_database == null) {
-      throw Exception('Database belum diinisialisasi. Pastikan untuk membuka database terlebih dahulu.');
+      // Consider initializing if null, or keep throwing for explicit open
+      // For this case, let's assume initDatabaseOffline is called first
+       throw Exception('Database belum diinisialisasi. Pastikan untuk membuka database terlebih dahulu.');
     }
     return _database!;
   }
@@ -87,6 +90,139 @@ class DatabaseHelper {
     final db = await database;
     return await db.delete(tableName, where: '$idColumn = ?', whereArgs: [id]);
   }
+
+  // --- New Methods for Laporan Penjualan ---
+
+  // Helper to format date for queries
+  String _formatDate(DateTime date) {
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
+
+  // Helper to format month for queries
+  String _formatMonth(DateTime date) {
+    return DateFormat('yyyy-MM').format(date);
+  }
+
+  // Get transactions for a specific date
+  Future<List<Map<String, dynamic>>> getTransactionsByDate(DateTime date) async {
+    final db = await database;
+    final dateStr = _formatDate(date);
+    return await db.rawQuery('''
+      SELECT t.*, SUM(td.qty) as total_items
+      FROM transaksi t
+      JOIN transaksi_detail td ON t.id = td.id_transaksi
+      WHERE date(t.tanggal) = ?
+      GROUP BY t.id
+      ORDER BY t.tanggal DESC
+    ''', [dateStr]);
+  }
+
+  // Get transactions for a specific month
+  Future<List<Map<String, dynamic>>> getTransactionsByMonth(DateTime date) async {
+    final db = await database;
+    final monthStr = _formatMonth(date);
+    return await db.rawQuery('''
+      SELECT t.*, SUM(td.qty) as total_items
+      FROM transaksi t
+      JOIN transaksi_detail td ON t.id = td.id_transaksi
+      WHERE strftime('%Y-%m', t.tanggal) = ?
+      GROUP BY t.id
+      ORDER BY t.tanggal DESC
+    ''', [monthStr]);
+  }
+
+  // Get transactions for a date range
+  Future<List<Map<String, dynamic>>> getTransactionsByDateRange(DateTime startDate, DateTime endDate) async {
+    final db = await database;
+    final startDateStr = _formatDate(startDate);
+    final endDateStr = _formatDate(endDate);
+     return await db.rawQuery('''
+      SELECT t.*, SUM(td.qty) as total_items
+      FROM transaksi t
+      JOIN transaksi_detail td ON t.id = td.id_transaksi
+      WHERE date(t.tanggal) BETWEEN ? AND ?
+      GROUP BY t.id
+      ORDER BY t.tanggal DESC
+    ''', [startDateStr, endDateStr]);
+  }
+
+  // Calculate total sales for a specific date
+  Future<double> getTotalSalesByDate(DateTime date) async {
+    final db = await database;
+    final dateStr = _formatDate(date);
+    final result = await db.rawQuery('''
+      SELECT SUM(total_bayar) as total
+      FROM transaksi
+      WHERE date(tanggal) = ?
+    ''', [dateStr]);
+    return (result.first['total'] as double?) ?? 0.0;
+  }
+
+  // Calculate total sales for a specific month
+  Future<double> getTotalSalesByMonth(DateTime date) async {
+    final db = await database;
+    final monthStr = _formatMonth(date);
+    final result = await db.rawQuery('''
+      SELECT SUM(total_bayar) as total
+      FROM transaksi
+      WHERE strftime('%Y-%m', tanggal) = ?
+    ''', [monthStr]);
+    return (result.first['total'] as double?) ?? 0.0;
+  }
+
+  // Calculate total sales for a date range
+  Future<double> getTotalSalesByDateRange(DateTime startDate, DateTime endDate) async {
+    final db = await database;
+    final startDateStr = _formatDate(startDate);
+    final endDateStr = _formatDate(endDate);
+    final result = await db.rawQuery('''
+      SELECT SUM(total_bayar) as total
+      FROM transaksi
+      WHERE date(tanggal) BETWEEN ? AND ?
+    ''', [startDateStr, endDateStr]);
+    return (result.first['total'] as double?) ?? 0.0;
+  }
+
+   // Calculate total items sold for a specific date
+  Future<int> getTotalItemsSoldByDate(DateTime date) async {
+    final db = await database;
+    final dateStr = _formatDate(date);
+    final result = await db.rawQuery('''
+      SELECT SUM(td.qty) as total
+      FROM transaksi t
+      JOIN transaksi_detail td ON t.id = td.id_transaksi
+      WHERE date(t.tanggal) = ?
+    ''', [dateStr]);
+    return (result.first['total'] as int?) ?? 0;
+  }
+
+  // Calculate total items sold for a specific month
+  Future<int> getTotalItemsSoldByMonth(DateTime date) async {
+    final db = await database;
+    final monthStr = _formatMonth(date);
+    final result = await db.rawQuery('''
+      SELECT SUM(td.qty) as total
+      FROM transaksi t
+      JOIN transaksi_detail td ON t.id = td.id_transaksi
+      WHERE strftime('%Y-%m', t.tanggal) = ?
+    ''', [monthStr]);
+    return (result.first['total'] as int?) ?? 0;
+  }
+
+  // Calculate total items sold for a date range
+  Future<int> getTotalItemsSoldByDateRange(DateTime startDate, DateTime endDate) async {
+    final db = await database;
+    final startDateStr = _formatDate(startDate);
+    final endDateStr = _formatDate(endDate);
+    final result = await db.rawQuery('''
+      SELECT SUM(td.qty) as total
+      FROM transaksi t
+      JOIN transaksi_detail td ON t.id = td.id_transaksi
+      WHERE date(t.tanggal) BETWEEN ? AND ?
+    ''', [startDateStr, endDateStr]);
+    return (result.first['total'] as int?) ?? 0;
+  }
+
 
   Future<void> createTables() async {
     final db = await database;

@@ -7,6 +7,9 @@ class AppRoutesConstants {
   static const String produkGlobal = "/products_global";
   static const String scanProduk = "/scan_produk";
   static const String pos = "/pos";
+  static const String laporanPenjualan = "/laporan_penjualan";
+
+
 
   // Maintenance
   static const String maintenance = "/maintenance";
