@@ -5,11 +5,10 @@ class AppRoutesConstants {
   static const String register = "/register";
   static const String produk = "/products";
   static const String produkGlobal = "/products_global";
+  static const String produkGlobalAdd = "/products_global/add"; // New Route
   static const String scanProduk = "/scan_produk";
   static const String pos = "/pos";
   static const String laporanPenjualan = "/laporan_penjualan";
-
-
 
   // Maintenance
   static const String maintenance = "/maintenance";

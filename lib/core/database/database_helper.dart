@@ -34,13 +34,17 @@ class DatabaseHelper {
         await openDatabaseFromPath(savedPath);
         print("✅ [Database] Opened from saved path: $savedPath");
 
-        // ✅ Cek apakah tabel 'transaksi' sudah ada
+        // ✅ Cek apakah tabel-tabel sudah ada
         final existingTables = await getAllTables();
 
-        if (!existingTables.contains('transaksi') || !existingTables.contains('transaksi_detail')) {
+        if (!existingTables.contains('transaksi') || 
+            !existingTables.contains('transaksi_detail') ||
+            !existingTables.contains('produk')) { // Check for 'produk' table
           print("ℹ️ [Database] Beberapa tabel belum ada. Membuat tabel...");
-          await createTables();
-          await insertDummyDataPerTriwulan();
+          await createTables(); // This will now create 'produk' if missing
+          if (!existingTables.contains('transaksi')) { // Only insert dummy if transaksi was missing
+             await insertDummyDataPerTriwulan();
+          }
         } else {
           print("✅ [Database] Semua tabel sudah tersedia, skip create.");
         }
@@ -80,7 +84,7 @@ class DatabaseHelper {
   // Fungsi untuk menambah data ke tabel tertentu secara dinamis
   Future<int> insertData(String tableName, Map<String, dynamic> data) async {
     final db = await database;
-    return await db.insert(tableName, data);
+    return await db.insert(tableName, data, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   // Fungsi untuk menghapus data berdasarkan ID dari tabel tertentu
@@ -174,7 +178,7 @@ class DatabaseHelper {
       FROM transaksi
       WHERE date(tanggal) = ?
     ''', [dateStr]);
-    return (result.first['total'] as double?) ?? 0.0;
+    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
   }
 
   // Calculate total sales for a specific month
@@ -187,7 +191,7 @@ class DatabaseHelper {
       FROM transaksi
       WHERE strftime('%Y-%m', tanggal) = ?
     ''', [monthStr]);
-    return (result.first['total'] as double?) ?? 0.0;
+    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
   }
 
   // Calculate total sales for a date range
@@ -200,7 +204,7 @@ class DatabaseHelper {
       FROM transaksi
       WHERE date(tanggal) BETWEEN ? AND ?
     ''', [startDateStr, endDateStr]);
-    return (result.first['total'] as double?) ?? 0.0;
+    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
   }
 
    // Calculate total items sold for a specific date
@@ -275,7 +279,28 @@ class DatabaseHelper {
       )
     ''');
 
-    print("✅ [Database] Tabel transaksi & transaksi_detail berhasil dicek/dibuat.");
+    // New table for Produk
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS produk (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        produk_nama TEXT NOT NULL,
+        produk_barcode TEXT UNIQUE,
+        produk_sku TEXT UNIQUE,
+        produk_plu TEXT,
+        kategori_nama TEXT, 
+        harga_beli REAL NOT NULL DEFAULT 0,
+        harga_jual REAL NOT NULL DEFAULT 0,
+        stok INTEGER NOT NULL DEFAULT 0,
+        satuan TEXT,
+        url_image TEXT,
+        deskripsi_produk TEXT,
+        is_aktif INTEGER DEFAULT 1,
+        created_at TEXT,
+        updated_at TEXT
+      )
+    ''');
+
+    print("✅ [Database] Tabel transaksi, transaksi_detail, & produk berhasil dicek/dibuat.");
   }
 
   Future<void> insertDummyDataPerTriwulan() async {
@@ -307,7 +332,7 @@ class DatabaseHelper {
 
           await db.insert('transaksi_detail', {
             'id_transaksi': transaksiId,
-            'produk_id': j + 1,
+            'produk_id': j + 1, // Assuming product IDs 1 and 2 exist or are placeholders
             'produk_barcode': 'BRCD-${transaksiCounter * 10 + j}',
             'produk_nama': 'Produk Triwulan ${j + 1}',
             'produk_sku': 'SKU${j + 1}',
@@ -318,11 +343,9 @@ class DatabaseHelper {
             'url_image': '',
           });
         }
-
         transaksiCounter++;
       }
     }
-
     print("✅ [Database] 80 data dummy transaksi (20 per 3 bulan) berhasil dimasukkan.");
   }
 }

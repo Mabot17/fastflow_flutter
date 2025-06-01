@@ -118,3 +118,5 @@ app.*.symbols
 
 # FVM Version Cache
 .fvm/
+lib/combined_codebase.txt
+lib/to_txt.py
