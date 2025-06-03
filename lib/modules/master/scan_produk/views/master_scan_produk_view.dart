@@ -148,7 +148,7 @@ class _MasterScanProdukViewState extends State<MasterScanProdukView> {
             onPressed: () {
               // Navigate to the POS screen
               Get.back(); // Go back from scan screen
-              homeController.handleMenuTap({'route': '/transaksi/pos'}); // Navigate to POS
+              homeController.handleMenuTap({'route': '/pos'}); // Navigate to POS
             },
             label: Text('Open Cart'),
             icon: Icon(Icons.shopping_cart),
