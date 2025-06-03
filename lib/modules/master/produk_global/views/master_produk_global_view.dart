@@ -238,11 +238,11 @@ class _ProductListItemState extends State<ProductListItem> {
                          child: Image.network(
                           widget.product["image"] ?? "",
                           height: 120,
-                          width: double.infinity,
+                          width: double.maxFinite,
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
                             height: 120,
-                            width: double.infinity,
+                            width: double.maxFinite,
                             color: Colors.grey[200],
                             child: Icon(Icons.image_not_supported, size: 50, color: Colors.grey[400]),
                           ),
