@@ -107,9 +107,14 @@ class _MasterScanProdukViewState extends State<MasterScanProdukView> {
                     trailing: IconButton(
                       icon: Icon(Icons.add_shopping_cart), // Changed icon to add to cart
                       onPressed: () {
-                        final productMap = controller.product.toJson();
-                        posController.addToCart(productMap, 1);
-                        // After adding to cart, clear the product display and restart scan
+                        // Capture the product data before clearing the observable
+                        final productMap = Map<String, dynamic>.from(controller.product);
+                        
+                        if (productMap.isNotEmpty) {
+                           posController.addToCart(productMap, 1);
+                        }
+                       
+                        // After adding to cart, clear the displayed product and restart scan
                         controller.product.clear(); // Clear the displayed product
                         _scannerController.start(); // Restart the scanner
                         // Removed: homeController.handleMenuTap({'route': '/home'});
@@ -135,6 +140,22 @@ class _MasterScanProdukViewState extends State<MasterScanProdukView> {
           ),
         ],
       ),
+      // Add FloatingActionButton conditionally
+      floatingActionButton: Obx(() {
+        // Show button only when not loading and product is empty
+        if (!controller.isLoading.value && controller.product.isEmpty) {
+          return FloatingActionButton.extended(
+            onPressed: () {
+              // Navigate to the POS screen
+              Get.back(); // Go back from scan screen
+              homeController.handleMenuTap({'route': '/transaksi/pos'}); // Navigate to POS
+            },
+            label: Text('Open Cart'),
+            icon: Icon(Icons.shopping_cart),
+          );
+        }
+        return Container(); // Return an empty container when button is not needed
+      }),
     );
   }
 }
