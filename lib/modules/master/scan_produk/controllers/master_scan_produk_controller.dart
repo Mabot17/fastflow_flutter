@@ -17,9 +17,19 @@ class MasterScanProdukController extends GetxController {
     try {
       isLoading(true);
       var fetchedProduct = await _service.fetchProductByBarcode(barcode);
-      product.assignAll(fetchedProduct ?? {});
+
+      if (fetchedProduct.isEmpty) {
+        // Product not found, navigate to add product screen with barcode
+        Get.back(); // Go back from scan screen
+        Get.toNamed(AppRoutesConstants.produkGlobalAdd, arguments: barcode);
+      } else {
+        // Product found, update the observable
+        product.assignAll(fetchedProduct);
+      }
     } catch (e) {
       print("❌ [Controller] Error fetching product: $e");
+      // Optionally show an error snackbar
+      Get.snackbar('Error', 'Gagal mencari produk: ${e.toString()}');
     } finally {
       isLoading(false);
     }
