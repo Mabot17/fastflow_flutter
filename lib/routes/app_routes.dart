@@ -1,3 +1,4 @@
+import 'package:fastflow_flutter/modules/laporan/penjualan/laporan_penjualan_module.dart';
 import 'package:get/get.dart';
 import '../modules/auth/login/auth_login_module.dart';
 import '../modules/home/home_module.dart';
@@ -20,6 +21,7 @@ class AppRoutes {
     ...MasterProdukGlobalModule.routes,
     ...MasterScanProdukModule.routes,
     ...TransaksiPosModule.routes,
+    ...LaporanPenjualanModule.routes,
 
     // Khusus maintenance pemanggilan berbeda karena hanya view saja
     GetPage(

@@ -7,7 +7,7 @@ class MasterScanProdukModule {
   static final routes = [
     GetPage(
       name: AppRoutesConstants.scanProduk,
-      page: () => MasterScanProdukView(),
+      page: () => MasterScanProdukView(), // This is now valid
       binding: BindingsBuilder(() {
         Get.put(MasterScanProdukController());
       }),

@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'dart:async';
 import '/core/services/storage_service.dart'; // Import StorageService
+import 'package:intl/intl.dart'; // Add intl package for date formatting
 
 class DatabaseHelper {
   final StorageService _storage = StorageService(); // Pakai StorageService
@@ -13,7 +14,7 @@ class DatabaseHelper {
   // Getter database untuk memastikan kita dapat mengakses DB yang aktif
   Future<Database> get database async {
     if (_database == null) {
-      throw Exception('Database belum diinisialisasi. Pastikan untuk membuka database terlebih dahulu.');
+       throw Exception('Database belum diinisialisasi. Pastikan untuk membuka database terlebih dahulu.');
     }
     return _database!;
   }
@@ -33,13 +34,17 @@ class DatabaseHelper {
         await openDatabaseFromPath(savedPath);
         print("✅ [Database] Opened from saved path: $savedPath");
 
-        // ✅ Cek apakah tabel 'transaksi' sudah ada
+        // ✅ Cek apakah tabel-tabel sudah ada
         final existingTables = await getAllTables();
 
-        if (!existingTables.contains('transaksi') || !existingTables.contains('transaksi_detail')) {
+        if (!existingTables.contains('transaksi') || 
+            !existingTables.contains('transaksi_detail') ||
+            !existingTables.contains('produk')) { // Check for 'produk' table
           print("ℹ️ [Database] Beberapa tabel belum ada. Membuat tabel...");
-          await createTables();
-          await insertDummyDataPerTriwulan();
+          await createTables(); // This will now create 'produk' if missing
+          if (!existingTables.contains('transaksi')) { // Only insert dummy if transaksi was missing
+             await insertDummyDataPerTriwulan();
+          }
         } else {
           print("✅ [Database] Semua tabel sudah tersedia, skip create.");
         }
@@ -79,7 +84,7 @@ class DatabaseHelper {
   // Fungsi untuk menambah data ke tabel tertentu secara dinamis
   Future<int> insertData(String tableName, Map<String, dynamic> data) async {
     final db = await database;
-    return await db.insert(tableName, data);
+    return await db.insert(tableName, data, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   // Fungsi untuk menghapus data berdasarkan ID dari tabel tertentu
@@ -87,6 +92,162 @@ class DatabaseHelper {
     final db = await database;
     return await db.delete(tableName, where: '$idColumn = ?', whereArgs: [id]);
   }
+
+  // --- New Methods for Laporan Penjualan ---
+
+  // Helper to format date for queries
+  String _formatDate(DateTime date) {
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
+
+  // Helper to format month for queries
+  String _formatMonth(DateTime date) {
+    return DateFormat('yyyy-MM').format(date);
+  }
+
+  // Get transactions for a specific date
+  Future<List<Map<String, dynamic>>> getTransactionsByDate(DateTime date) async {
+    final db = await database;
+    // Use only the date part for comparison (yyyy-MM-dd)
+    final dateStr = DateFormat('yyyy-MM-dd').format(date);
+    // Log for debugging
+    print('[DatabaseHelper] Querying transactions for date: $dateStr');
+    return await db.rawQuery('''
+      SELECT t.*, SUM(td.qty) as total_items
+      FROM transaksi t
+      JOIN transaksi_detail td ON t.id = td.id_transaksi
+      WHERE date(t.tanggal, 'localtime') = date(?, 'localtime')
+      GROUP BY t.id
+      ORDER BY t.tanggal DESC
+    ''', [dateStr]);
+  }
+
+  // Get transactions for a specific month (individual transactions)
+  // This method is used by the new monthly transactions list view
+  Future<List<Map<String, dynamic>>> getTransactionsByMonth(DateTime date) async {
+    final db = await database;
+    final monthStr = _formatMonth(date);
+    return await db.rawQuery('''
+      SELECT t.*, SUM(td.qty) as total_items
+      FROM transaksi t
+      JOIN transaksi_detail td ON t.id = td.id_transaksi
+      WHERE strftime('%Y-%m', t.tanggal) = ?
+      GROUP BY t.id
+      ORDER BY t.tanggal DESC
+    ''', [monthStr]);
+  }
+
+  // Get transactions for a date range
+  Future<List<Map<String, dynamic>>> getTransactionsByDateRange(DateTime startDate, DateTime endDate) async {
+    final db = await database;
+    final startDateStr = _formatDate(startDate);
+    final endDateStr = _formatDate(endDate);
+     return await db.rawQuery('''
+      SELECT t.*, SUM(td.qty) as total_items
+      FROM transaksi t
+      JOIN transaksi_detail td ON t.id = td.id_transaksi
+      WHERE date(t.tanggal) BETWEEN ? AND ?
+      GROUP BY t.id
+      ORDER BY t.tanggal DESC
+    ''', [startDateStr, endDateStr]);
+  }
+
+  // --- New method for Monthly Aggregation ---
+  Future<List<Map<String, dynamic>>> getMonthlyAggregatedSales(int year) async {
+      final db = await database;
+      return await db.rawQuery('''
+        SELECT
+          strftime('%Y-%m', tanggal) as sale_month,
+          SUM(total_bayar) as monthly_total_sales,
+          SUM(td.qty) as monthly_total_items
+        FROM transaksi t
+        JOIN transaksi_detail td ON t.id = td.id_transaksi
+        WHERE strftime('%Y', tanggal) = ?
+        GROUP BY sale_month
+        ORDER BY sale_month DESC
+      ''', [year.toString()]);
+  }
+
+
+  // Calculate total sales for a specific date
+  Future<double> getTotalSalesByDate(DateTime date) async {
+    final db = await database;
+    final dateStr = _formatDate(date);
+    final result = await db.rawQuery('''
+      SELECT SUM(total_bayar) as total
+      FROM transaksi
+      WHERE date(tanggal) = ?
+    ''', [dateStr]);
+    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  // Calculate total sales for a specific month
+  // This method is kept but the monthly tab will use the new aggregation method
+  Future<double> getTotalSalesByMonth(DateTime date) async {
+    final db = await database;
+    final monthStr = _formatMonth(date);
+    final result = await db.rawQuery('''
+      SELECT SUM(total_bayar) as total
+      FROM transaksi
+      WHERE strftime('%Y-%m', tanggal) = ?
+    ''', [monthStr]);
+    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  // Calculate total sales for a date range
+  Future<double> getTotalSalesByDateRange(DateTime startDate, DateTime endDate) async {
+    final db = await database;
+    final startDateStr = _formatDate(startDate);
+    final endDateStr = _formatDate(endDate);
+    final result = await db.rawQuery('''
+      SELECT SUM(total_bayar) as total
+      FROM transaksi
+      WHERE date(tanggal) BETWEEN ? AND ?
+    ''', [startDateStr, endDateStr]);
+    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+  }
+
+   // Calculate total items sold for a specific date
+  Future<int> getTotalItemsSoldByDate(DateTime date) async {
+    final db = await database;
+    final dateStr = _formatDate(date);
+    final result = await db.rawQuery('''
+      SELECT SUM(td.qty) as total
+      FROM transaksi t
+      JOIN transaksi_detail td ON t.id = td.id_transaksi
+      WHERE date(t.tanggal) = ?
+    ''', [dateStr]);
+    return (result.first['total'] as int?) ?? 0;
+  }
+
+  // Calculate total items sold for a specific month
+  // This method is kept but the monthly tab will use the new aggregation method
+  Future<int> getTotalItemsSoldByMonth(DateTime date) async {
+    final db = await database;
+    final monthStr = _formatMonth(date);
+    final result = await db.rawQuery('''
+      SELECT SUM(td.qty) as total
+      FROM transaksi t
+      JOIN transaksi_detail td ON t.id = td.id_transaksi
+      WHERE strftime('%Y-%m', t.tanggal) = ?
+    ''', [monthStr]);
+    return (result.first['total'] as int?) ?? 0;
+  }
+
+  // Calculate total items sold for a date range
+  Future<int> getTotalItemsSoldByDateRange(DateTime startDate, DateTime endDate) async {
+    final db = await database;
+    final startDateStr = _formatDate(startDate);
+    final endDateStr = _formatDate(endDate);
+    final result = await db.rawQuery('''
+      SELECT SUM(td.qty) as total
+      FROM transaksi t
+      JOIN transaksi_detail td ON t.id = td.id_transaksi
+      WHERE date(t.tanggal) BETWEEN ? AND ?
+    ''', [startDateStr, endDateStr]);
+    return (result.first['total'] as int?) ?? 0;
+  }
+
 
   Future<void> createTables() async {
     final db = await database;
@@ -118,7 +279,28 @@ class DatabaseHelper {
       )
     ''');
 
-    print("✅ [Database] Tabel transaksi & transaksi_detail berhasil dicek/dibuat.");
+    // New table for Produk
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS produk (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        produk_nama TEXT NOT NULL,
+        produk_barcode TEXT UNIQUE,
+        produk_sku TEXT UNIQUE,
+        produk_plu TEXT,
+        kategori_nama TEXT, 
+        harga_beli REAL NOT NULL DEFAULT 0,
+        harga_jual REAL NOT NULL DEFAULT 0,
+        stok INTEGER NOT NULL DEFAULT 0,
+        satuan TEXT,
+        url_image TEXT,
+        deskripsi_produk TEXT,
+        is_aktif INTEGER DEFAULT 1,
+        created_at TEXT,
+        updated_at TEXT
+      )
+    ''');
+
+    print("✅ [Database] Tabel transaksi, transaksi_detail, & produk berhasil dicek/dibuat.");
   }
 
   Future<void> insertDummyDataPerTriwulan() async {
@@ -150,7 +332,7 @@ class DatabaseHelper {
 
           await db.insert('transaksi_detail', {
             'id_transaksi': transaksiId,
-            'produk_id': j + 1,
+            'produk_id': j + 1, // Assuming product IDs 1 and 2 exist or are placeholders
             'produk_barcode': 'BRCD-${transaksiCounter * 10 + j}',
             'produk_nama': 'Produk Triwulan ${j + 1}',
             'produk_sku': 'SKU${j + 1}',
@@ -161,13 +343,9 @@ class DatabaseHelper {
             'url_image': '',
           });
         }
-
         transaksiCounter++;
       }
     }
-
     print("✅ [Database] 80 data dummy transaksi (20 per 3 bulan) berhasil dimasukkan.");
   }
-
-
 }
