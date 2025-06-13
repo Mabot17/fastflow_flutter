@@ -5,7 +5,6 @@ import '../modules/auth/login/auth_login_module.dart';
 import '../modules/home/home_module.dart';
 
 // Menu master
-import '../modules/master/produk/master_produk_module.dart';
 import '../modules/master/produk_global/master_produk_global_module.dart';
 import '../modules/master/scan_produk/master_scan_produk_module.dart';
 
@@ -18,7 +17,6 @@ class AppRoutes {
     // Pemanggilan Global langsung routes full
     ...AuthLoginModule.routes,
     ...HomeModule.routes,
-    ...MasterProdukModule.routes,
     ...MasterProdukGlobalModule.routes,
     ...MasterScanProdukModule.routes,
     ...TransaksiPosModule.routes,

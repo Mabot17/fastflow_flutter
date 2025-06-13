@@ -11,6 +11,9 @@ class HomeController extends GetxController {
   var username = ''.obs;
   var menuData = <dynamic>[].obs;
   var currentIndex = 0.obs;
+  Map<String, dynamic> _userData = {}; // Store user data
+
+  Map<String, dynamic> get userData => _userData; // <-- Add this getter
 
   // Keranjang: key = productId, value = map {product, qty}
 
@@ -26,6 +29,7 @@ class HomeController extends GetxController {
 
   Future<void> loadUserData() async {
     final userData = await _storage.read('user_data') ?? {};
+    _userData = userData; // <-- Save to _userData
     username.value = userData['user_name'] ?? 'Unknown';
     menuData.value = jsonDecode(menuJson)['sections'];
   }
