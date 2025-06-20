@@ -104,21 +104,27 @@ class _MasterScanProdukViewState extends State<MasterScanProdukView> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text("Rp ${controller.product["finalPrice"] ?? 0}"),
-                    trailing: IconButton(
-                      icon: Icon(Icons.add_shopping_cart), // Changed icon to add to cart
-                      onPressed: () {
-                        // Capture the product data before clearing the observable
-                        final productMap = Map<String, dynamic>.from(controller.product);
-                        
-                        if (productMap.isNotEmpty) {
-                           posController.addToCart(productMap, 1);
-                        }
-                       
-                        // After adding to cart, clear the displayed product and restart scan
-                        controller.product.clear(); // Clear the displayed product
-                        _scannerController.start(); // Restart the scanner
-                        // Removed: homeController.handleMenuTap({'route': '/home'});
-                      },
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit),
+                          onPressed: () {
+                            controller.goToEdit();
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.add_shopping_cart),
+                          onPressed: () {
+                            final productMap = Map<String, dynamic>.from(controller.product);
+                            if (productMap.isNotEmpty) {
+                              posController.addToCart(productMap, 1);
+                            }
+                            controller.product.clear();
+                            _scannerController.start();
+                          },
+                        ),
+                      ],
                     ),
                   ),
                   // Add a button to scan again if a product is displayed (standalone route)

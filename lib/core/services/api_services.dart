@@ -73,6 +73,15 @@ class ApiService {
     return await _dio.delete(endpoint, data: data, options: _getOptions(useToken, headers));
   }
 
+  Future<Response> patch(String path, {dynamic data, bool useToken = true, Map<String, dynamic>? queryParameters, Options? options}) async {
+    return await _dio.patch(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: _getOptions(useToken, queryParameters)
+    );
+  }
+
   Options _getOptions(bool useToken, Map<String, dynamic>? customHeaders) {
     final defaultHeaders = <String, dynamic>{
       "Accept": "application/json",

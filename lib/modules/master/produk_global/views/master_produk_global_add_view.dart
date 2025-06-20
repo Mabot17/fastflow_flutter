@@ -51,6 +51,16 @@ class MasterProdukGlobalAddView extends GetView<MasterProdukGlobalAddController>
 
   @override
   Widget build(BuildContext context) {
+    // Check for arguments when the view is built
+    final scannedBarcode = Get.arguments;
+    if (scannedBarcode != null && scannedBarcode is String) {
+      // Use WidgetsBinding.instance.addPostFrameCallback to ensure the controller
+      // and text field are ready before setting the text.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        controller.barcodeController.text = scannedBarcode;
+      });
+    }
+
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Tambah Produk Baru',
@@ -77,12 +87,15 @@ class MasterProdukGlobalAddView extends GetView<MasterProdukGlobalAddController>
               _buildTextField(
                 controller: controller.barcodeController,
                 labelText: 'Barcode',
-                prefixIcon: Icons.qr_code_scanner, // Changed icon
-                suffixIcon: IconButton( // Added scan button
+                prefixIcon: Icons.qr_code_scanner,
+                suffixIcon: IconButton(
                   icon: Icon(Icons.camera_alt, color: Color(0xFF7C4DFF)),
                   onPressed: () {
                     // Explicitly put the controller before navigating
-                    Get.put(MasterScanProdukController());
+                    // Ensure the controller is only put if not already found
+                    if (!Get.isRegistered<MasterScanProdukController>()) {
+                       Get.put(MasterScanProdukController());
+                    }
                     Get.to(() => MasterScanProdukView(
                           onBarcodeScanned: (scannedBarcode) {
                             controller.barcodeController.text = scannedBarcode;

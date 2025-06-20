@@ -20,6 +20,7 @@ const String menuJson = '''
       "title": "Laporan",
       "items": [
         { "title": "Laporan POS", "icon": "bar_chart", "route": "/report_pos" },
+        { "title": "Laporan dashboard", "icon": "show_chart", "route": "/laporan_dashboard" },
         { "title": "Laporan Penjualan", "icon": "show_chart", "route": "/laporan_penjualan" }
       ]
     }
