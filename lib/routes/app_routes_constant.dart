@@ -10,7 +10,8 @@ class AppRoutesConstants {
   static const String pos = "/pos";
   static const String laporanPenjualan = "/laporan_penjualan";
 
-  // Maintenance
+    static const String topin = "/topin";
+// Maintenance
   static const String maintenance = "/maintenance";
   static const String notFound = "/not_found";
 }

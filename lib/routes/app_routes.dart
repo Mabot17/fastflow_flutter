@@ -1,3 +1,4 @@
+import '../modules/topin/topin_module.dart';
 import 'package:fastflow_flutter/modules/laporan/penjualan/laporan_penjualan_module.dart';
 import 'package:get/get.dart';
 import '../modules/auth/login/auth_login_module.dart';
@@ -14,6 +15,7 @@ import '../modules/global/maintenance_view.dart';
 
 class AppRoutes {
   static final routes = [
+    ...TopinModule.routes,
     // Pemanggilan Global langsung routes full
     ...AuthLoginModule.routes,
     ...HomeModule.routes,

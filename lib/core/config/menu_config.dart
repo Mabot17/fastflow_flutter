@@ -11,6 +11,8 @@ const String menuJson = '''
     {
       "title": "Transaksi",
       "items": [
+        { "title": "Topin", "icon": "list", "route": "/topin" },
+
         { "title": "POS", "icon": "point_of_sale", "route": "/pos" }
       ]
     },
