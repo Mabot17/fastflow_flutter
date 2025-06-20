@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import '../../home/controllers/home_controller.dart';
 import '../controllers/topin_controller.dart';
 import '../models/topin_model.dart';
 
 class TopinView extends StatelessWidget {
   final TopinController controller = Get.put(TopinController());
+  final HomeController _home_controller = Get.find<HomeController>();
 
   Widget _buildQuickAction(
     IconData icon,
@@ -179,7 +180,33 @@ class TopinView extends StatelessWidget {
                   color: Colors.teal.shade100,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text('1 Trx', style: TextStyle(color: Colors.black)),
+                child: GestureDetector(
+                  onTap: () {
+                    _home_controller.handleMenuTap({'route': '/laporan_penjualan'});
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.teal.shade100,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.receipt_long,
+                          size: 16,
+                          color: Colors.teal.shade800,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          '1 Trx',
+                          style: TextStyle(color: Colors.teal.shade800),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -222,7 +249,7 @@ class TopinView extends StatelessWidget {
                                   group.groupTitle,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 16,
+                                    fontSize: 18,
                                   ),
                                 ),
                               ),
@@ -278,5 +305,4 @@ class TopinView extends StatelessWidget {
       ),
     );
   }
-
 }
