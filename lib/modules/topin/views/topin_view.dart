@@ -169,7 +169,13 @@ class TopinView extends StatelessWidget {
       backgroundColor: Color(0xFFF8F9FA),
       appBar: AppBar(
         backgroundColor: Color(0xFF1B7F79),
-        title: Text('Hai, mabot'),
+        title: Text(
+          'Top Up Instan',
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -253,44 +259,53 @@ class TopinView extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              GridView.builder(
-                                padding: const EdgeInsets.all(4),
-                                shrinkWrap: true,
-                                physics: NeverScrollableScrollPhysics(),
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 4,
-                                      mainAxisSpacing: 16,
-                                      crossAxisSpacing: 16,
-                                      childAspectRatio: 0.8,
-                                    ),
-                                itemCount: group.items.length,
-                                itemBuilder: (context, index) {
-                                  final item = group.items[index];
-                                  return GestureDetector(
-                                    onTap: () => controller.onItemTap(item),
-                                    child: Column(
-                                      children: [
-                                        CircleAvatar(
-                                          backgroundColor: Colors.green.shade50,
-                                          radius: 28,
-                                          child: Icon(
-                                            item.icon,
-                                            size: 28,
-                                            color: Colors.teal,
+                              SizedBox(
+                                child: GridView.builder(
+                                  padding: const EdgeInsets.all(4),
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 4,
+                                    mainAxisSpacing: 12,
+                                    crossAxisSpacing: 12,
+                                    childAspectRatio: 0.75, // Dikurangi untuk memberikan lebih banyak tinggi
+                                  ),
+                                  itemCount: group.items.length,
+                                  itemBuilder: (context, index) {
+                                    final item = group.items[index];
+                                    return GestureDetector(
+                                      onTap: () => controller.onItemTap(item),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          CircleAvatar(
+                                            backgroundColor: Colors.green.shade50,
+                                            radius: 24, // Dikurangi dari 28 ke 24
+                                            child: Icon(
+                                              item.icon,
+                                              size: 24, // Disesuaikan dengan radius
+                                              color: Colors.teal,
+                                            ),
                                           ),
-                                        ),
-                                        SizedBox(height: 8),
-                                        Text(
-                                          item.title,
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 12),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
+                                          const SizedBox(height: 6), // Dikurangi dari 8 ke 6
+                                          Flexible( // Menggunakan Flexible instead of Expanded untuk fleksibilitas yang lebih baik
+                                            child: Text(
+                                              item.title,
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                fontSize: 11, // Dikurangi dari 12 ke 11
+                                                height: 1.2, // Menambahkan line height untuk readability
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              )
                             ],
                           ),
                         ),
