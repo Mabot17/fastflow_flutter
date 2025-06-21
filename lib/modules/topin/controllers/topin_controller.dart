@@ -115,4 +115,14 @@ class TopinController extends GetxController {
           );
         }).toList();
   }
+
+  Future<void> beliProduk(String kodeProduk, String tujuanId) async {
+    final success = await _service.submitTransaksiIrs(kodeProduk, tujuanId);
+    if (success) {
+      Get.snackbar("Berhasil", "Pembelian berhasil dilakukan!");
+    } else {
+      Get.snackbar("Gagal", "Pembelian gagal.");
+    }
+  }
+
 }

@@ -45,4 +45,22 @@ class TopinService {
     }
   }
 
+  Future<bool> submitTransaksiIrs(String kodeProduk, String tujuanId) async {
+    try {
+      final response = await _apiService.post(
+        "/transaksi_irs",
+        {
+          "kode_produk": kodeProduk,
+          "tujuan_id": tujuanId,
+        },
+      );
+
+      print("✅ [submitTransaksiIrs] Response: ${response.data}");
+      return response.statusCode == 200;
+    } catch (e) {
+      print("❌ [submitTransaksiIrs] Error: $e");
+      return false;
+    }
+  }
+
 }
