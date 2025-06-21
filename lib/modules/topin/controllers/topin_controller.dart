@@ -9,58 +9,110 @@ import '../services/topin_service.dart';
 class TopinController extends GetxController {
   final StorageService _storage = StorageService();
   final TopinService _service = TopinService();
-  var produkItems = <MenuItemModel>[].obs;
 
-  var groupedMenuList = <MenuGroupModel>[
-    MenuGroupModel(groupTitle: 'Top Services', items: [
-      MenuItemModel(title: 'Pulsa Nasional', keyword: 'pulsa', icon: Icons.phone_android),
-      MenuItemModel(title: 'Sms & Telp', keyword: 'sms', icon: Icons.sms),
-      MenuItemModel(title: 'Uang Elektronik', keyword: 'uang', icon: Icons.account_balance_wallet),
-      MenuItemModel(title: 'Token PLN', keyword: 'pln', icon: Icons.flash_on),
-    ]),
-    MenuGroupModel(groupTitle: 'Operator', items: [
-      MenuItemModel(title: 'Axis', keyword: 'axis', icon: Icons.sim_card),
-      MenuItemModel(title: 'Indosat', keyword: 'indosat', icon: Icons.sim_card_alert),
-      MenuItemModel(title: 'Smartfren', keyword: 'smartfren', icon: Icons.settings_cell),
-      MenuItemModel(title: 'Telkomsel', keyword: 'telkomsel', icon: Icons.network_cell),
-      MenuItemModel(title: 'Tri', keyword: 'tri', icon: Icons.phone_iphone),
-      MenuItemModel(title: 'XL', keyword: 'xl', icon: Icons.signal_cellular_alt),
-      MenuItemModel(title: 'By.U', keyword: 'byu', icon: Icons.mobile_friendly),
-    ]),
-    MenuGroupModel(groupTitle: 'Lainnya', items: [
-      MenuItemModel(title: 'Game', keyword: 'mobile', icon: Icons.videogame_asset),
-    ])
-  ].obs;
+  var groupedMenuList =
+      <MenuGroupModel>[
+        MenuGroupModel(
+          groupTitle: 'Top Services',
+          items: [
+            MenuItemModel(
+              title: 'Pulsa Nasional',
+              keyword: 'pulsa',
+              icon: Icons.phone_android,
+            ),
+            MenuItemModel(title: 'Sms & Telp', keyword: 'sms', icon: Icons.sms),
+            MenuItemModel(
+              title: 'Uang Elektronik',
+              keyword: 'uang',
+              icon: Icons.account_balance_wallet,
+            ),
+            MenuItemModel(
+              title: 'Token PLN',
+              keyword: 'pln',
+              icon: Icons.flash_on,
+            ),
+          ],
+        ),
+        MenuGroupModel(
+          groupTitle: 'Operator',
+          items: [
+            MenuItemModel(title: 'Axis', keyword: 'axis', icon: Icons.sim_card),
+            MenuItemModel(
+              title: 'Indosat',
+              keyword: 'indosat',
+              icon: Icons.sim_card_alert,
+            ),
+            MenuItemModel(
+              title: 'Smartfren',
+              keyword: 'smartfren',
+              icon: Icons.settings_cell,
+            ),
+            MenuItemModel(
+              title: 'Telkomsel',
+              keyword: 'telkomsel',
+              icon: Icons.network_cell,
+            ),
+            MenuItemModel(
+              title: 'Tri',
+              keyword: 'tri',
+              icon: Icons.phone_iphone,
+            ),
+            MenuItemModel(
+              title: 'XL',
+              keyword: 'xl',
+              icon: Icons.signal_cellular_alt,
+            ),
+            MenuItemModel(
+              title: 'By.U',
+              keyword: 'byu',
+              icon: Icons.mobile_friendly,
+            ),
+          ],
+        ),
+        MenuGroupModel(
+          groupTitle: 'Lainnya',
+          items: [
+            MenuItemModel(
+              title: 'Game',
+              keyword: 'mobile',
+              icon: Icons.videogame_asset,
+            ),
+          ],
+        ),
+      ].obs;
 
   void onItemTap(MenuItemModel item) {
     Get.to(() => DetailProdukPage(item: item));
   }
 
-  Future<void> loadProdukItems(String keyword) async {
-    final groupedData = await _service.fetchGroupedProdukDigitalRaw(keyword);
+  var groupItems = <MenuItemModel>[].obs;
+  var subItems = <MenuItemModel>[].obs;
 
-    final items = groupedData
-        .expand((group) => group["items"] as List)
-        .map((item) {
-          final kode = (item["produk_digital_kode"] ?? "").toString().toLowerCase();
+  Future<void> loadGroupProduk(String keyword) async {
+    final rawData = await _service.fetchProdukGroup(keyword);
+    print(rawData);
 
-          // Tentukan icon berdasarkan kode atau nama
-          IconData icon = Icons.sim_card;
-          if (kode.contains("axis")) icon = Icons.signal_cellular_alt;
-          else if (kode.contains("telp") || kode.contains("nelpon")) icon = Icons.call;
-          else if (kode.contains("sms")) icon = Icons.sms;
-          else if (kode.contains("data") || kode.contains("paket")) icon = Icons.wifi;
-          else if (kode.contains("game")) icon = Icons.videogame_asset;
-          else if (kode.contains("pln")) icon = Icons.flash_on;
-
+    groupItems.value =
+        rawData.map((item) {
+          final group = item["produk_digital_group"] ?? "Tanpa Group";
           return MenuItemModel(
-            title: item["produk_digital_nama"],
-            keyword: item["produk_digital_kode"],
-            icon: icon,
+            title: group,
+            keyword: group,
+            icon: Icons.category,
           );
-        })
-        .toList();
+        }).toList();
+  }
 
-    produkItems.assignAll(items);
+  Future<void> loadSubGroupProduk(String keyword) async {
+    final rawData = await _service.fetchProdukSubGroup(keyword);
+
+    subItems.value =
+        rawData.map((item) {
+          return MenuItemModel(
+            title: item["produk_digital_nama"] ?? "-",
+            keyword: item["produk_digital_kode"] ?? "-",
+            icon: Icons.sim_card,
+          );
+        }).toList();
   }
 }
