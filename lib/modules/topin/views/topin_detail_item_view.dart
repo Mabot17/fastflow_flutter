@@ -14,6 +14,8 @@ class DetailSubProdukPage extends StatefulWidget {
 
 class _DetailSubProdukPageState extends State<DetailSubProdukPage> {
   late TopinController controller;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -21,6 +23,31 @@ class _DetailSubProdukPageState extends State<DetailSubProdukPage> {
     controller = Get.put(TopinController());
     controller.subItems.clear(); // 🔄 Reset dulu
     controller.loadSubGroupProduk(widget.item.title); // 🔃 Load baru
+    
+    // Listen to search changes
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // Filter function
+  List<MenuItemModel> _filterItems(List<MenuItemModel> items) {
+    if (_searchQuery.isEmpty) {
+      return items;
+    }
+    
+    return items.where((item) {
+      return item.title.toLowerCase().contains(_searchQuery) ||
+             item.keyword.toLowerCase().contains(_searchQuery);
+    }).toList();
   }
 
   void _showBeliDialog(BuildContext context, String kodeProduk) {
@@ -212,138 +239,215 @@ class _DetailSubProdukPageState extends State<DetailSubProdukPage> {
           ),
         ),
       ),
-      body: Obx(() {
-        if (controller.subItems.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
-                  strokeWidth: 3,
+      body: Column(
+        children: [
+          // Search Bar
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: Colors.white,
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Cari produk atau kode...',
+                prefixIcon: Icon(Icons.search, color: Colors.grey.shade600),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(Icons.clear, color: Colors.grey.shade600),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'Memuat produk...',
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 16,
-                  ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.teal, width: 2),
                 ),
-              ],
-            ),
-          );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: controller.subItems.length,
-          itemBuilder: (context, index) {
-            final produk = controller.subItems[index];
-            return Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                filled: true,
+                fillColor: Colors.grey.shade50,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
-              child: Material(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () => _showBeliDialog(context, produk.keyword),
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      children: [
-                        // Icon Container
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: Colors.teal.shade50,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.teal.withOpacity(0.2),
-                              width: 1,
-                            ),
-                          ),
-                          child: Icon(
-                            produk.icon,
-                            size: 28,
-                            color: Colors.teal,
-                          ),
+            ),
+          ),
+          
+          // Products List
+          Expanded(
+            child: Obx(() {
+              if (controller.subItems.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+                        strokeWidth: 3,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Memuat produk...',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 16,
                         ),
-                        const SizedBox(width: 16),
-                        
-                        // Content
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                produk.title,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF2D3748),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  "Kode: ${produk.keyword}",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade600,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              final filteredItems = _filterItems(controller.subItems);
+
+              if (filteredItems.isEmpty && _searchQuery.isNotEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.search_off,
+                        size: 64,
+                        color: Colors.grey.shade400,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Produk tidak ditemukan',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
                         ),
-                        
-                        // Shopping Cart Button
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.teal,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.teal.withOpacity(0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.shopping_cart_outlined,
-                            size: 20,
-                            color: Colors.white,
-                          ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Coba kata kunci lain',
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: filteredItems.length,
+                itemBuilder: (context, index) {
+                  final produk = filteredItems[index];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      }),
+                    child: Material(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () => _showBeliDialog(context, produk.keyword),
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          child: Row(
+                            children: [
+                              // Icon Container
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: Colors.teal.shade50,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Colors.teal.withOpacity(0.2),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Icon(
+                                  produk.icon,
+                                  size: 28,
+                                  color: Colors.teal,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              
+                              // Content
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      produk.title,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF2D3748),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade100,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        "Kode: ${produk.keyword}",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade600,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              
+                              // Shopping Cart Button
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.teal,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.teal.withOpacity(0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.shopping_cart_outlined,
+                                  size: 20,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            }),
+          ),
+        ],
+      ),
     );
   }
 }
